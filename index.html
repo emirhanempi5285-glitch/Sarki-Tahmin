@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Şarkı Tahmin Oyunu</title>
+    <meta name="description" content="Sadece müziğini duyarak popüler şarkıları ne kadar hızlı tahmin edebilirsin?">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header: Score and Mode -->
+        <header class="game-header glass-panel">
+            <div class="score-container">
+                <span class="label">Sonsuz Akış Skoru</span>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            
+            <div class="category-container">
+                <select id="categorySelect" class="category-select">
+                    <option value="rastgele">🎲 Rastgele</option>
+                    <option value="global_pop">🌍 Global Pop</option>
+                    <option value="turkce_pop">🇹🇷 Türkçe Pop</option>
+                    <option value="global_rock">🎸 Global Rock</option>
+                    <option value="turkce_rock">🇹🇷 Türkçe Rock</option>
+                    <option value="global_metal">🤘 Global Metal</option>
+                    <option value="turkce_metal">🇹🇷 Türkçe Metal</option>
+                    <option value="global_rap">🎤 Global Rap</option>
+                    <option value="turkce_rap">🇹🇷 Türkçe Rap</option>
+                </select>
+            </div>
+
+            <div class="mode-badge">
+                <span class="pulse-dot"></span> Canlı
+            </div>
+        </header>
+
+        <!-- Main Gameplay Area -->
+        <main class="game-main glass-panel">
+            <div class="hint-box">
+                <img id="btnCover" class="btn-cover" src="" alt="Album Hint">
+            </div>
+            <div class="visualizer-container">
+                <div class="pulse-ring" id="pulseRing"></div>
+                <button class="play-btn" id="playBtn" disabled>
+                    <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="controls-row">
+                <div class="volume-container">
+                    <svg viewBox="0 0 24 24" class="vol-icon" fill="currentColor">
+                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+                    </svg>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
+                </div>
+                
+                <button class="skip-btn" id="skipBtn" disabled>
+                    Geç <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                        <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <p class="status-msg" id="statusMsg">Şarkı yükleniyor...</p>
+        </main>
+
+        <!-- Search / Autocomplete Area -->
+        <section class="search-section glass-panel">
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" placeholder="Şarkı veya sanatçı yazın..." autocomplete="off" disabled>
+                <div class="autocomplete-dropdown" id="autocompleteDropdown">
+                    <!-- Search results will appear here -->
+                </div>
+            </div>
+        </section>
+        
+        <div class="modal-overlay" id="feedbackModal">
+            <div class="modal glass-panel" id="feedbackPanel">
+                <h2 id="feedbackTitle">Doğru!</h2>
+                <div class="song-info" id="feedbackSongInfo">
+                    <img id="feedbackCover" src="" alt="Album Cover">
+                    <div class="song-details">
+                        <strong id="feedbackTrack">Şarkı Adı</strong>
+                        <span id="feedbackArtist">Sanatçı</span>
+                    </div>
+                </div>
+                <p class="auto-next-msg">🎶 Sonraki şarkı 3 saniye içinde başlıyor...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Element -->
+    <audio id="audioPlayer" preload="auto"></audio>
+
+    <script src="app.js"></script>
+</body>
+</html>
