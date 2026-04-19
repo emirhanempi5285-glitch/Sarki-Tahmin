@@ -71,8 +71,11 @@ const categorySidebar = document.getElementById('categorySidebar');
 const sidebarOverlay = document.getElementById('sidebarOverlay');
 const categoryToggleBtn = document.getElementById('categoryToggleBtn');
 const closeSidebarBtn = document.getElementById('closeSidebarBtn');
-const catBtns = document.querySelectorAll('#categorySidebar .cat-btn');
-const toggleText = categoryToggleBtn.querySelector('span');
+const catBtns = document.querySelectorAll('#musicCategoryList .cat-btn');
+const movieCatBtns = document.querySelectorAll('#movieCategoryList .cat-btn');
+const musicCategoryList = document.getElementById('musicCategoryList');
+const movieCategoryList = document.getElementById('movieCategoryList');
+const sidebarTitle = document.getElementById('sidebarTitle');
 
 // Mode Sidebar UI Elements
 const modeSidebar = document.getElementById('modeSidebar');
@@ -106,6 +109,26 @@ const hintYear = document.getElementById('hintYear');
 const hintCast = document.getElementById('hintCast');
 const hintOverview = document.getElementById('hintOverview');
 
+// Streamer UI Elements
+const streamerSetup = document.getElementById('streamerSetup');
+const kickUsernameInput = document.getElementById('kickUsernameInput');
+const verifyStreamerBtn = document.getElementById('verifyStreamerBtn');
+const kickProfileCard = document.getElementById('kickProfileCard');
+const kickProfileImg = document.getElementById('kickProfileImg');
+const kickProfileName = document.getElementById('kickProfileName');
+const kickProfileFollowers = document.getElementById('kickProfileFollowers');
+const kickChatroomIdDisplay = document.getElementById('kickChatroomIdDisplay');
+const roundDurationInput = document.getElementById('roundDurationInput');
+const startStreamerBtn = document.getElementById('startStreamerBtn');
+const kickStatusMsg = document.getElementById('kickStatusMsg');
+const roundWinners = document.getElementById('roundWinners');
+const roundWinnersList = document.getElementById('roundWinnersList');
+const globalScoreboard = document.getElementById('globalScoreboard');
+const globalScoreList = document.getElementById('globalScoreList');
+const progressBarContainer = document.getElementById('progressBarContainer');
+const searchSection = document.getElementById('searchSection');
+const currentCategoryName = document.getElementById('currentCategoryName');
+
 // Movie UI Elements (required for mode switching)
 const visualizerContainer = document.getElementById('visualizerContainer');
 const frameContainer = document.getElementById('frameContainer');
@@ -118,13 +141,29 @@ let currentAnswer = null;
 let isPlaying = false;
 let searchTimeout = null;
 let autoNextTimeout = null;
+let audioRetryTimeout = null;
 const playedTrackIds = new Set();
 const recentArtistHistory = []; // To prevent same artists consecutively
 let usedHint = false;
 let currentCategoryValue = 'rastgele';
-let currentMode = 'song';
+let currentMovieGenre = 'all'; 
+let currentMode = localStorage.getItem('gameMode') || 'song';
 let movieLives = 4;
 let movieHintDetails = null;
+
+// Streamer Mode State
+let globalScores = {}; 
+let roundWinnersData = []; 
+let userGuesses = {}; 
+let pusherInstance = null;
+let pusherChannelInfo = null;
+let currentChatroomId = null;
+let streamerRoundTimer = null;
+let roundMaxTime = 45;
+let currentRoundTime = 0;
+let isStreamerRoundActive = false;
+let isStreamerBattleActive = false;
+
 
 const FREE_TMDB_KEYS = [
     'fb7bb23f03b6994dafc674c074d01761',
@@ -154,6 +193,15 @@ function getTmdbApiKey() {
 }
 
 // Initialize
+function initModeFromStorage() {
+    const savedMode = localStorage.getItem('gameMode');
+    if (savedMode) {
+        currentMode = savedMode;
+    }
+}
+
+// Global initialization - script is at end of body, DOM is ready
+initModeFromStorage();
 initGame();
 
 function initGame() {
@@ -163,8 +211,6 @@ function initGame() {
     // Set initial volume
     audioPlayer.volume = volumeSlider.value;
 
-    loadNextRound();
-    
     // Event Listeners
     playBtn.addEventListener('click', togglePlay);
     skipBtn.addEventListener('click', handleSkip);
@@ -208,16 +254,18 @@ function initGame() {
         btn.addEventListener('click', () => {
             if(btn.classList.contains('settings-btn') || btn.disabled) return;
             
+            const newMode = btn.dataset.mode;
             modeButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            closeSidebar();
             
-            const newMode = btn.dataset.mode;
             if(currentMode !== newMode) {
                 currentMode = newMode;
+                localStorage.setItem('gameMode', currentMode);
                 resetGameForModeSwitch();
                 loadNextRound();
+                updateCategoryUI();
             }
+            closeSidebar();
         });
     });
 
@@ -228,13 +276,12 @@ function initGame() {
             btn.classList.add('active');
             
             const newVal = btn.dataset.val;
-            toggleText.textContent = btn.textContent;
             closeSidebar();
             
             if (currentCategoryValue !== newVal) {
                 currentCategoryValue = newVal;
                 // Reset game on selection
-                if(currentMode !== 'song') return; // only handles song mode reset
+                if(currentMode !== 'song') return;
                 score = 0;
                 updateScoreUI();
                 playedTrackIds.clear(); 
@@ -245,6 +292,24 @@ function initGame() {
                 pulseRing.classList.remove('active');
                 btnCover.classList.remove('show');
                 loadNextRound();
+                updateCategoryUI();
+            }
+        });
+    });
+
+    movieCatBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            movieCatBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const newGenre = btn.dataset.genre;
+            closeSidebar();
+            if (currentMovieGenre !== newGenre) {
+                currentMovieGenre = newGenre;
+                playedTrackIds.clear();
+                if (autoNextTimeout) clearTimeout(autoNextTimeout);
+                feedbackModal.classList.remove('show');
+                loadNextRound();
+                updateCategoryUI();
             }
         });
     });
@@ -259,6 +324,32 @@ function initGame() {
             autocompleteDropdown.classList.remove('show');
         }
     });
+
+    // Apply saved mode and start game
+    modeButtons.forEach(btn => {
+        if(btn.dataset.mode === currentMode) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+    resetGameForModeSwitch();
+    loadNextRound();
+    updateCategoryUI();
+}
+
+function updateCategoryUI() {
+    if (!currentCategoryName) return;
+    let name = '-';
+    if (currentMode === 'song') {
+        const activeBtn = document.querySelector('#musicCategoryList .cat-btn.active');
+        name = activeBtn ? activeBtn.textContent : 'Mixed';
+    } else if (currentMode === 'movie') {
+        const activeBtn = document.querySelector('#movieCategoryList .cat-btn.active');
+        name = activeBtn ? activeBtn.textContent : 'All';
+    } else if (currentMode === 'streamer') {
+        name = 'Streamer Mode';
+    }
+    
+    // Clear emojis
+    currentCategoryName.textContent = name.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
 }
 
 function updateScoreUI() {
@@ -271,33 +362,287 @@ function resetGameForModeSwitch() {
     playedTrackIds.clear(); 
     recentArtistHistory.length = 0; 
     if(autoNextTimeout) clearTimeout(autoNextTimeout);
+    if(audioRetryTimeout) clearTimeout(audioRetryTimeout);
     feedbackModal.classList.remove('show');
     audioPlayer.pause();
     pulseRing.classList.remove('active');
     btnCover.classList.remove('show');
+    streamerSetup.style.display = 'none';
+    searchSection.style.display = 'block';
+    globalScoreboard.style.display = 'none';
+    progressBarContainer.style.display = 'block';
+    roundWinners.style.display = 'none';
+    document.body.classList.remove('streamer-mode-active');
+    if(streamerRoundTimer) clearInterval(streamerRoundTimer);
+    isStreamerRoundActive = false;
+    isStreamerBattleActive = false;
+    document.body.classList.remove('streamer-battle-active');
+
+    if (pusherInstance) {
+        pusherInstance.disconnect();
+        pusherInstance = null;
+    }
     
+    // UI Reset
+    visualizerContainer.style.display = 'none';
+    frameContainer.style.display = 'none';
+    searchSection.style.display = 'block';
+    categoryToggleBtn.style.display = 'flex'; // Her modda önce bir göster (Yayıncıda tekrar gizleyeceğiz)
+    document.getElementById('skipBtn').style.display = '';
+    document.getElementById('mainScorePanel').style.display = 'flex';
+    document.getElementById('mainScorePanel').style.visibility = 'visible';
+    livesContainer.style.display = 'none';
+    hintsGrid.style.display = 'none';
+    hintBtn.style.display = 'block';
+    hintBox.style.display = 'block';
+    trackStats.style.display = 'none';
+    statusMsg.textContent = '';
+
     if (currentMode === 'song') {
         visualizerContainer.style.display = 'flex';
-        frameContainer.style.display = 'none';
-        categoryToggleBtn.style.display = 'flex';
+        musicCategoryList.style.display = 'flex';
+        movieCategoryList.style.display = 'none';
+        sidebarTitle.textContent = 'Music Categories';
+        searchInput.placeholder = 'Type song or artist...';
         volumeContainer.style.display = 'flex';
-        livesContainer.style.display = 'none';
-        hintsGrid.style.display = 'none';
-        hintBtn.style.display = 'block';
-        hintBox.style.display = 'block';
     } else if (currentMode === 'movie') {
-        visualizerContainer.style.display = 'none';
         frameContainer.style.display = 'block';
-        categoryToggleBtn.style.display = 'none';
-        volumeContainer.style.display = 'none';
         livesContainer.style.display = 'flex';
         hintsGrid.style.display = 'grid';
         hintBtn.style.display = 'none';
         hintBox.style.display = 'none';
+        musicCategoryList.style.display = 'none';
+        movieCategoryList.style.display = 'flex';
+        sidebarTitle.textContent = 'Movie Categories';
+        searchInput.placeholder = 'Enter movie title...';
+        volumeContainer.style.display = 'none'; // No audio in movies
+    } else if (currentMode === 'streamer') {
+        searchSection.style.display = 'none';
+        progressBarContainer.style.display = 'none';
+        document.getElementById('mainScorePanel').style.display = 'none';
+        volumeContainer.style.display = 'none'; // Hide audio in setup
+        hintBtn.style.display = 'none'; // Hide hints in setup
+        document.getElementById('skipBtn').style.display = 'none'; // Hide skip in setup
+        hintBox.style.display = 'none'; // Hide empty box in setup
+        statusMsg.textContent = 'Please complete the setup.';
+        kickProfileCard.style.display = 'none';
+        startStreamerBtn.style.display = 'none';
+        kickStatusMsg.textContent = '';
+        streamerSetup.style.display = 'block';
+        document.body.classList.add('streamer-mode-active');
+        categoryToggleBtn.style.display = 'none'; // Hide Sidebar Toggle in Streamer Setup
+        musicCategoryList.style.display = 'flex';
+        movieCategoryList.style.display = 'none';
+        sidebarTitle.textContent = 'Music Categories';
     }
 }
 
+// -------------------------------------------------------------------------------------
+// KICK STREAMER MODE & PUSHER LOGIC
+// -------------------------------------------------------------------------------------
+verifyStreamerBtn.addEventListener('click', async () => {
+    const kickUsername = kickUsernameInput.value.trim().toLowerCase();
+    if (!kickUsername) {
+        kickStatusMsg.textContent = 'Please enter a valid username!';
+        return;
+    }
+
+    kickStatusMsg.textContent = "Finding channel...";
+    verifyStreamerBtn.disabled = true;
+    kickProfileCard.style.display = 'none';
+    startStreamerBtn.style.display = 'none';
+
+    try {
+        const res = await fetch(`https://kick.com/api/v1/channels/${kickUsername}`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        
+        if (!res.ok) throw new Error('Channel not found or network error.');
+
+        const data = await res.json();
+        const chatroomId = data.chatroom?.id;
+
+        if (!chatroomId) throw new Error('Could not retrieve chatroom ID (user may have never streamed).');
+
+        currentChatroomId = chatroomId;
+        kickProfileImg.src = data.user?.profile_pic || 'https://kick.com/favicon.ico';
+        kickProfileName.textContent = data.user?.username || kickUsername;
+        kickProfileFollowers.textContent = `${data.followersCount || 0} Followers`;
+
+        kickProfileCard.style.display = 'flex';
+        startStreamerBtn.style.display = 'block';
+        kickStatusMsg.textContent = 'Channel verified. Ready to start!';
+
+    } catch (err) {
+        console.error(err);
+        kickStatusMsg.textContent = `Error: ${err.message}`;
+    } finally {
+        verifyStreamerBtn.disabled = false;
+    }
+});
+
+startStreamerBtn.addEventListener('click', async () => {
+    if (!currentChatroomId) return;
+
+    const duration = parseInt(roundDurationInput.value);
+    if (!duration || duration < 15 || duration > 120) {
+        kickStatusMsg.textContent = 'Round duration must be between 15 and 120 seconds.';
+        return;
+    }
+    
+    const streamerCategorySelect = document.getElementById('streamerCategorySelect');
+    if (streamerCategorySelect) {
+        currentCategoryValue = streamerCategorySelect.value;
+    }
+    
+    roundMaxTime = duration;
+
+    kickStatusMsg.textContent = "Connecting to chat...";
+    startStreamerBtn.disabled = true;
+    verifyStreamerBtn.disabled = true;
+    categoryToggleBtn.style.display = 'none'; // Ensure hidden in EN version too
+
+    try {
+        if(pusherInstance) pusherInstance.disconnect();
+        pusherInstance = new Pusher('32cbd69e4b950bf97679', { cluster: 'us2', forceTLS: true });
+        pusherChannelInfo = pusherInstance.subscribe(`chatrooms.${currentChatroomId}.v2`);
+        
+        pusherChannelInfo.bind('pusher:subscription_succeeded', () => {
+            kickStatusMsg.textContent = 'Connected! Game starting...';
+            setTimeout(() => {
+                isStreamerBattleActive = true;
+                streamerSetup.style.display = 'none';
+                visualizerContainer.style.display = 'flex';
+                hintBox.style.display = 'block';
+                volumeContainer.style.display = 'flex';
+                document.getElementById('skipBtn').style.display = 'none';
+                document.body.classList.add('streamer-battle-active');
+                closeSidebar();
+                
+                globalScoreboard.style.display = 'flex';
+                progressBarContainer.style.display = 'block';
+                loadNextRound();
+            }, 1000);
+        });
+
+        pusherChannelInfo.bind('App\\Events\\ChatMessageEvent', (eventData) => {
+            if(!isStreamerRoundActive || !currentAnswer) return;
+            handleStreamerChatGuess(eventData.sender.username, eventData.content);
+        });
+
+    } catch (err) {
+        console.error(err);
+        kickStatusMsg.textContent = `Error: ${err.message}`;
+        startStreamerBtn.disabled = false;
+        verifyStreamerBtn.disabled = false;
+    }
+});
+
+
+function calculateLevenshteinDistance(a, b) {
+    const matrix = [];
+    for(let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
+    for(let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
+    for(let i = 1; i <= b.length; i++) {
+        for(let j = 1; j <= a.length; j++) {
+            if(b.charAt(i-1) == a.charAt(j-1)) {
+                matrix[i][j] = matrix[i-1][j-1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i-1][j-1] + 1, 
+                    Math.min(matrix[i][j-1] + 1, matrix[i-1][j] + 1)
+                );
+            }
+        }
+    }
+    return matrix[b.length][a.length];
+}
+
+function normalizeStringForGuess(str) {
+    return str.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function handleStreamerChatGuess(username, message) {
+    if(roundWinnersData.length >= 10) return;
+    if(userGuesses[username] >= 2) return;
+    
+    const target = normalizeStringForGuess(currentAnswer.trackName);
+    const guess = normalizeStringForGuess(message);
+    
+    if(guess.length < 3) return;
+    
+    const distance = calculateLevenshteinDistance(target, guess);
+    const threshold = target.length > 10 ? 2 : (target.length > 5 ? 1 : 0);
+    
+    if (guess.includes(target) || distance <= threshold) {
+        if(roundWinnersData.find(w => w.username === username)) return;
+        
+        const points = Math.max(1, Math.ceil((currentRoundTime / roundMaxTime) * 10));
+        roundWinnersData.push({ username, points });
+        
+        if(!globalScores[username]) globalScores[username] = 0;
+        globalScores[username] += points;
+        
+        userGuesses[username] = 2; // Locked out
+        updateGlobalScoreboardUI();
+        
+        if (roundWinnersData.length >= 10) endStreamerRound(true);
+    } else {
+        if(!userGuesses[username]) userGuesses[username] = 0;
+        userGuesses[username]++;
+    }
+}
+
+function updateGlobalScoreboardUI() {
+    const sorted = Object.keys(globalScores).sort((a,b) => globalScores[b] - globalScores[a]);
+    globalScoreList.innerHTML = '';
+    if(sorted.length === 0) {
+        globalScoreList.innerHTML = '<li class="empty-list">No scores yet.</li>';
+        return;
+    }
+    sorted.slice(0, 50).forEach((user, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="rank">${index+1}</span><span class="user">${user}</span><span class="score">${globalScores[user]}</span>`;
+        globalScoreList.appendChild(li);
+    });
+}
+
+function endStreamerRound(earlyEnd = false) {
+    if(!isStreamerRoundActive) return;
+    isStreamerRoundActive = false;
+    clearInterval(streamerRoundTimer);
+    audioPlayer.pause();
+    pulseRing.classList.remove('active');
+    btnCover.classList.add('show');
+    btnCover.querySelector('img').style.filter = 'blur(0px)';
+    
+    statusMsg.textContent = `${currentAnswer.artistName} - ${currentAnswer.trackName}`;
+    progressBar.style.width = '100%';
+
+    roundWinnersList.innerHTML = '';
+    if(roundWinnersData.length === 0) {
+        roundWinnersList.innerHTML = '<li style="justify-content: center; color: var(--text-muted)">Nobody guessed it!</li>';
+    } else {
+        roundWinnersData.forEach(w => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span class="user">${w.username}</span><span class="points">+${w.points} Pts</span>`;
+            roundWinnersList.appendChild(li);
+        });
+    }
+    
+    roundWinners.style.display = 'block';
+
+    autoNextTimeout = setTimeout(() => {
+        roundWinners.style.display = 'none';
+        loadNextRound();
+    }, 7000);
+}
+// -------------------------------------------------------------------------------------
+
 async function loadNextRound() {
+    if (currentMode === 'streamer' && !isStreamerBattleActive) {
+        return; // Do not fetch songs during setup
+    }
     playBtn.disabled = true;
     skipBtn.disabled = true;
     hintBtn.disabled = true;
@@ -312,11 +657,12 @@ async function loadNextRound() {
     movieLives = 4;
     resetMovieUI();
     
-    if (currentMode === 'song') {
-        statusMsg.textContent = 'Searching for a new hit...';
+    if (currentMode === 'song' || currentMode === 'streamer') {
+        statusMsg.textContent = 'Searching for a hit...';
+        trackStats.style.display = 'none';
         await loadNextAudioTask();
     } else if (currentMode === 'movie') {
-        statusMsg.textContent = 'Fetching movie frame...';
+        statusMsg.textContent = 'Fetch movie frame...';
         await loadNextMovieTask();
     }
 }
@@ -393,7 +739,7 @@ async function loadNextAudioTask() {
         const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&limit=50&entity=song&media=music&attribute=artistTerm`);
         const data = await response.json();
         
-        const excludeKeywords = ['live', 'remix', 'mix', 'karaoke', 'instrumental', 'version', 'acoustic', 'edit'];
+        const excludeKeywords = ['live', 'remix', 'mix', 'karaoke', 'instrumental', 'acoustic', 'edit'];
         
         // Filter songs: Has URL, Not Played Before, Strictly Matches Artist, Excludes Remixes
         const validSongs = data.results.filter(song => {
@@ -427,14 +773,14 @@ async function loadNextAudioTask() {
             if (strictYearSongs.length > 0) {
                 poolToUse = strictYearSongs;
             } else {
-                // Şarkı kalmadıysa (Remaster kurbanı ise) API bloklamamak için bekleyip sıradaki sanatçıyı çek
-                return setTimeout(loadNextSong, 500);
+                audioRetryTimeout = setTimeout(loadNextAudioTask, 500);
+                return;
             }
         }
         
         if (poolToUse.length === 0) {
-            // Şarkı kalmadıysa sıradaki sanatçıdan yeniden dene
-            return setTimeout(loadNextSong, 500);
+            audioRetryTimeout = setTimeout(loadNextAudioTask, 500);
+            return;
         }
         
         // Repertuarı devasa popüler hit aralığına genişlet (Top 30 hit şarkı)
@@ -466,45 +812,84 @@ async function loadNextAudioTask() {
         // Track Stats
         const year = currentAnswer.releaseDate ? currentAnswer.releaseDate.substring(0, 4) : '????';
         const randomViews = Math.floor(Math.random() * 800) + 100;
-        trackStats.textContent = `📅 Released: ${year}  |  ▶️ ~${randomViews}M+ Streams`;
+        trackStats.textContent = `📅 Release Year: ${year}  |  ▶️ ~${randomViews}M+ Streams`;
         trackStats.style.display = 'block';
+
+        if (currentMode === 'streamer') {
+            btnCover.querySelector('img').style.filter = 'blur(20px)';
+            userGuesses = {};
+            roundWinnersData = [];
+            currentRoundTime = roundMaxTime;
+            isStreamerRoundActive = true;
+            
+            audioPlayer.play().then(() => {
+                isPlaying = true;
+                pulseRing.classList.add('active');
+                
+                btnCover.querySelector('img').style.transition = `filter ${roundMaxTime}s linear`;
+                setTimeout(() => {
+                    if(isStreamerRoundActive) btnCover.querySelector('img').style.filter = 'blur(0px)';
+                }, 100);
+
+                streamerRoundTimer = setInterval(() => {
+                    currentRoundTime--;
+                    progressBar.style.width = `${((roundMaxTime - currentRoundTime) / roundMaxTime) * 100}%`;
+                    statusMsg.textContent = `Time left to guess: ${currentRoundTime}s`;
+                    if (currentRoundTime <= 0) endStreamerRound(false);
+                }, 1000);
+            }).catch(e => {
+                console.error("Auto-play blocked", e);
+                statusMsg.textContent = "Auto-play blocked, please click the page once!";
+            });
+        }
         
     } catch (err) {
         console.error(err);
-        statusMsg.textContent = 'Connection error, retrying...';
-        setTimeout(loadNextAudioTask, 2000);
+        if (currentMode === 'song' || (currentMode === 'streamer' && isStreamerRoundActive)) {
+            statusMsg.textContent = 'Connection error, retrying...';
+            audioRetryTimeout = setTimeout(loadNextAudioTask, 2000);
+        }
     }
 }
 
 async function loadNextMovieTask() {
     const activeKey = getTmdbApiKey();
-    const useTopRated = Math.random() > 0.3; // 70% top_rated for quality
-    const endpoint = useTopRated ? 'top_rated' : 'popular';
-    const randomPage = Math.floor(Math.random() * 8) + 1;
     try {
-        const popRes = await fetch(`https://api.themoviedb.org/3/movie/${endpoint}?api_key=${activeKey}&language=en-US&page=${randomPage}`);
-        const popData = await popRes.json();
+        let movies = [];
         
-        if(!popData.results || popData.results.length === 0) throw new Error('Movie not found');
+        if (currentMovieGenre === 'top') {
+            // Top Rated: IMDb 8.5+ (vote_average >= 8.5, vote_count >= 500)
+            const page = Math.floor(Math.random() * 5) + 1;
+            const res = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${activeKey}&language=en-US&sort_by=vote_average.desc&vote_count.gte=500&vote_average.gte=8.5&with_original_language=en&page=${page}`);
+            const data = await res.json();
+            movies = (data.results || []).filter(m => !playedTrackIds.has(m.id));
+        } else if (currentMovieGenre === 'all') {
+            const useTopRated = Math.random() > 0.3;
+            const endpoint = useTopRated ? 'top_rated' : 'popular';
+            const page = Math.floor(Math.random() * 8) + 1;
+            const res = await fetch(`https://api.themoviedb.org/3/movie/${endpoint}?api_key=${activeKey}&language=en-US&page=${page}`);
+            const data = await res.json();
+            movies = (data.results || []).filter(m =>
+                !playedTrackIds.has(m.id) &&
+                m.vote_count >= 1000 &&
+                m.vote_average >= 7.0 &&
+                m.original_language === 'en'
+            );
+            if (movies.length === 0) movies = (data.results || []).filter(m => !playedTrackIds.has(m.id) && m.original_language === 'en');
+        } else {
+            const page = Math.floor(Math.random() * 8) + 1;
+            const langFilter = currentMovieGenre === '16' ? '' : '&with_original_language=en';
+            const res = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${activeKey}&language=en-US&sort_by=popularity.desc&vote_count.gte=500&vote_average.gte=6.5&with_genres=${currentMovieGenre}${langFilter}&page=${page}`);
+            const data = await res.json();
+            movies = (data.results || []).filter(m => !playedTrackIds.has(m.id));
+        }
         
-        // Anime filter: only English-language films
-        const ANIME_GENRE_ID = 16;
-        const filtered = popData.results.filter(m => {
-            if (m.vote_count < 1000) return false;
-            if (m.vote_average < 7.0) return false;
-            if (m.original_language !== 'en') return false;
-            if (playedTrackIds.has(m.id)) return false;
-            return true;
-        });
+        if (movies.length === 0) {
+            playedTrackIds.clear();
+            return setTimeout(loadNextMovieTask, 300);
+        }
         
-        let candidateMovies = filtered.length > 0 ? filtered
-            : popData.results.filter(m => !playedTrackIds.has(m.id) && m.vote_count >= 500 && m.vote_average >= 6.5
-                && m.original_language === 'en');
-        if (candidateMovies.length === 0) candidateMovies = popData.results.filter(m => !playedTrackIds.has(m.id) && m.original_language === 'en');
-        if (candidateMovies.length === 0) candidateMovies = popData.results.filter(m => !playedTrackIds.has(m.id));
-        if (candidateMovies.length === 0) candidateMovies = popData.results;
-        
-        const selectedMovie = candidateMovies[Math.floor(Math.random() * candidateMovies.length)];
+        const selectedMovie = movies[Math.floor(Math.random() * movies.length)];
         
         const detailRes = await fetch(`https://api.themoviedb.org/3/movie/${selectedMovie.id}?api_key=${activeKey}&language=en-US&append_to_response=credits`);
         const movieDetails = await detailRes.json();
@@ -858,7 +1243,7 @@ function handleGuess(guessedItem) {
         updateScoreUI();
         showFeedback('correct');
     } else if (isCorrectArtist) {
-        score += usedHint ? 1 : 2;
+        score += usedHint ? 3 : 5;
         updateScoreUI();
         showFeedback('partial');
     } else {
@@ -930,7 +1315,7 @@ function showFeedback(type) {
         feedbackTitle.textContent = 'Awesome! That\'s Correct 🎉';
     } else if (type === 'partial') {
         feedbackPanel.className = 'modal glass-panel partial-panel';
-        feedbackTitle.textContent = 'Artist Correct! (+2 Points) 👏';
+        feedbackTitle.textContent = 'Artist Correct! (+5 Points) 👏';
     } else if (type === 'skip') {
         feedbackPanel.className = 'modal glass-panel skip-panel';
         feedbackTitle.textContent = 'Skipped ⏭';
