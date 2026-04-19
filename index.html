@@ -9,8 +9,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
+    <script src="https://js.pusher.com/8.0/pusher.min.js"></script>
 </head>
 <body>
+    <!-- Global Header Actions -->
+    <div class="header-right-global">
+        <a href="index-en.html" class="lang-btn" title="İngilizce Versiyon">🇬🇧 EN</a>
+    </div>
+
     <!-- Warning Badge -->
     <div class="beta-warning">
         🚧 Henüz tam sürümde değil, çeşitli hatalar veya buglar meydana gelebilir. İyi oyunlar!
@@ -21,10 +27,12 @@
         <!-- Category Sidebar -->
         <div id="categorySidebar" class="category-sidebar">
             <div class="sidebar-header">
-                <h3>Müzik Kategorileri</h3>
+                <h3 id="sidebarTitle">Müzik Kategorileri</h3>
                 <button id="closeSidebarBtn" class="close-btn">✖</button>
             </div>
-            <div class="category-list">
+
+            <!-- Music Categories (shown in song mode) -->
+            <div class="category-list" id="musicCategoryList">
                 <button class="cat-btn active" data-val="rastgele">🎲 Rastgele</button>
                 <button class="cat-btn" data-val="global_pop">🌍 Global Pop</button>
                 <button class="cat-btn" data-val="yabanci_2000ler">💿 2000'ler Global Hits</button>
@@ -47,8 +55,30 @@
                 <button class="cat-btn" data-val="film">🎬 Film Müzikleri</button>
                 <button class="cat-btn" data-val="oyun">🎮 Oyun Müzikleri</button>
             </div>
+
+            <!-- Movie Categories (shown in movie mode) -->
+            <div class="category-list" id="movieCategoryList" style="display:none;">
+                <button class="cat-btn active" data-genre="all">🎲 Tümü (Rastgele)</button>
+                <button class="cat-btn" data-genre="top">🏆 En İyiler (IMDb 8.5+)</button>
+                <button class="cat-btn" data-genre="28">💥 Aksiyon</button>
+                <button class="cat-btn" data-genre="12">🗺️ Macera</button>
+                <button class="cat-btn" data-genre="35">😂 Komedi</button>
+                <button class="cat-btn" data-genre="18">🎭 Drama</button>
+                <button class="cat-btn" data-genre="27">😱 Korku</button>
+                <button class="cat-btn" data-genre="878">🚀 Bilim Kurgu</button>
+                <button class="cat-btn" data-genre="53">🕵️ Gerilim</button>
+                <button class="cat-btn" data-genre="80">🔫 Suç & Gizem</button>
+                <button class="cat-btn" data-genre="14">🧙 Fantastik</button>
+                <button class="cat-btn" data-genre="16">🎨 Animasyon</button>
+                <button class="cat-btn" data-genre="10749">💕 Romantik</button>
+            </div>
         </div>
         <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+        <!-- Left Tab Button (Category) -->
+        <button id="categoryToggleBtn" class="side-tab-btn left-tab" title="Kategoriler">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+        </button>
 
         <!-- Right Tab Button -->
         <button id="modeToggleTab" class="side-tab-btn right-tab" title="Oyun Modları">
@@ -64,35 +94,28 @@
             <div class="category-list">
                 <button class="cat-btn active" data-mode="song">🎧 Şarkı Tahmini</button>
                 <button class="cat-btn" data-mode="movie">🎬 Film Kareleri</button>
-                <button class="cat-btn disabled" disabled title="Çok Yakında!">💬 Replik Tahmini (Yakında)</button>
-                <button class="cat-btn disabled" disabled title="Çok Yakında!">👾 Piksel Sanatı (Yakında)</button>
+                <button class="cat-btn" data-mode="streamer">🔴 Yayıncı Modu (Kick)</button>
             </div>
         </div>
 
-        <!-- Header: Score and Mode -->
-        <header class="game-header glass-panel">
-            <div class="score-container">
-                <span class="label">Sonsuz Akış Skoru</span>
-                <span class="value" id="scoreValue">0</span>
-            </div>
-            
-            <div class="category-container">
-                <button id="categoryToggleBtn" class="category-toggle">
-                    <span>🎲 Rastgele</span> 
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
-                </button>
-            </div>
-
-            <div class="header-actions">
-                <a href="index-en.html" class="lang-btn" title="İngilizce Versiyon">🇬🇧 EN</a>
-                <div class="mode-badge">
-                    <span class="pulse-dot"></span> Canlı
+        <!-- Central Layout Wrapper -->
+        <div class="main-layout">
+            <!-- Header: Score and Mode -->
+            <header class="game-header glass-panel">
+                <div class="header-status-bar" id="mainScorePanel">
+                    <div class="score-panel">
+                        <span class="label">SKOR</span>
+                        <span class="value" id="scoreValue">0</span>
+                    </div>
+                    <div class="active-category-panel" id="activeCategoryPanel">
+                        <span class="label">KATEGORİ</span>
+                        <span class="value" id="currentCategoryName">-</span>
+                    </div>
                 </div>
-            </div>
-        </header>
+            </header>
 
-        <!-- Main Gameplay Area -->
-        <main class="game-main glass-panel">
+            <!-- Main Gameplay Area -->
+            <main class="game-main glass-panel">
             <div class="hint-box">
                 <img id="btnCover" class="btn-cover" src="" alt="Album Hint">
             </div>
@@ -154,22 +177,107 @@
                 </button>
             </div>
 
-            <div class="progress-bar-container">
+            <!-- Streamer Setup Screen -->
+            <div class="streamer-setup" id="streamerSetup" style="display: none;">
+                <div class="setup-header">
+                    <h2>🔴 Yayıncı Modu (Kick)</h2>
+                    <p>İzleyicileriniz chat üzerinden şarkıları tahmin ederek yarışır.</p>
+                </div>
+
+                <div class="setup-form">
+                    <!-- 1. Kanal Bilgileri Box -->
+                    <div class="setup-card">
+                        <h3>1. Kanal Bilgileri</h3>
+                        <div class="setup-group">
+                            <label>Kick Kanal Adı</label>
+                            <div class="input-with-button">
+                                <input type="text" id="kickUsernameInput" placeholder="Kanal adını yazın..." />
+                                <button id="verifyStreamerBtn" class="verify-btn">Doğrula</button>
+                            </div>
+                        </div>
+
+                        <!-- Profile Card -->
+                        <div id="kickProfileCard" class="kick-profile-card" style="display: none;">
+                            <img id="kickProfileImg" src="" alt="Profile">
+                            <div class="kick-profile-info">
+                                <strong id="kickProfileName">---</strong>
+                                <span id="kickProfileFollowers">--- Puan</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setup-card settings-card">
+                        <h3>2. Oyun Ayarları</h3>
+                        <div class="setup-group">
+                            <label>Müzik Kategorisi</label>
+                            <select id="streamerCategorySelect" class="streamer-select">
+                                <option value="rastgele">🎲 Rastgele</option>
+                                <option value="global_pop">🌍 Global Pop</option>
+                                <option value="yabanci_2000ler">💿 2000'ler Global Hits</option>
+                                <option value="yabanci_90lar">🪩 90'lar Global Hit</option>
+                                <option value="yabanci_80ler">🕺 80'ler Nostalji</option>
+                                <option value="turkce_pop">🕺 Türkçe Pop</option>
+                                <option value="turkce_90lar_pop">📼 90'lar Türkçe Pop</option>
+                                <option value="turk_sanat_muzigi">🎻 Türk Sanat Müziği</option>
+                                <option value="turkce_arabesk">🥀 Arabesk</option>
+                                <option value="global_rock">🎸 Global Rock</option>
+                                <option value="punk_rock">🛹 Punk Rock</option>
+                                <option value="turkce_rock">🤘 Türkçe Rock</option>
+                                <option value="anadolu_rock">🧿 Anadolu Rock</option>
+                                <option value="turkce_indie">⛺ Türkçe Alternatif</option>
+                                <option value="global_metal">💀 Global Metal</option>
+                                <option value="nu_metal">⛓️ Nu Metal</option>
+                                <option value="turkce_metal">🔥 Türkçe Metal</option>
+                                <option value="global_rap">🎤 Global Rap</option>
+                                <option value="turkce_rap">🔥 Türkçe Rap</option>
+                                <option value="film">🎬 Film Müzikleri</option>
+                                <option value="oyun">🎮 Oyun Müzikleri</option>
+                            </select>
+                        </div>
+                        <div class="setup-group">
+                            <label>Şarkı Süresi (Saniye)</label>
+                            <input type="number" id="roundDurationInput" value="45" min="15" max="120" />
+                        </div>
+                    </div>
+
+                    <button id="startStreamerBtn" class="primary-btn start-game-btn" style="display: none;">Oyunu Başlat</button>
+                </div>
+                
+                <p class="status-msg" id="kickStatusMsg"></p>
+            </div>
+
+            <div class="progress-bar-container" id="progressBarContainer">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
+            
+            <!-- Streamer Round Winners (Hidden by default) -->
+            <div class="round-winners" id="roundWinners" style="display: none;">
+                <h4>Bu Turu Bilenler</h4>
+                <ul id="roundWinnersList"></ul>
+            </div>
+
             <p class="status-msg" id="statusMsg">Şarkı yükleniyor...</p>
             <p class="track-stats" id="trackStats" style="display: none;"></p>
         </main>
 
-        <!-- Search / Autocomplete Area -->
-        <section class="search-section glass-panel">
-            <div class="search-wrapper">
-                <input type="text" id="searchInput" placeholder="Şarkı veya sanatçı yazın..." autocomplete="off" disabled>
-                <div class="autocomplete-dropdown" id="autocompleteDropdown">
-                    <!-- Search results will appear here -->
+            <!-- Search / Autocomplete Area -->
+            <section class="search-section glass-panel" id="searchSection">
+                <div class="search-wrapper">
+                    <input type="text" id="searchInput" placeholder="Şarkı veya sanatçı yazın..." autocomplete="off" disabled>
+                    <div class="autocomplete-dropdown" id="autocompleteDropdown">
+                        <!-- Search results will appear here -->
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        </div> <!-- End of .main-layout -->
+
+        <!-- Global Scoreboard Sidebar (Hidden by default) -->
+        <aside class="global-scoreboard glass-panel" id="globalScoreboard" style="display: none;">
+            <h3>🏆 Global Sıralama</h3>
+            <ul id="globalScoreList">
+                <li class="empty-list">Henüz puan alan kimse yok.</li>
+            </ul>
+        </aside>
         
         <div class="modal-overlay" id="feedbackModal">
             <div class="modal glass-panel" id="feedbackPanel">
@@ -184,6 +292,7 @@
                 <p class="auto-next-msg">🎶 Sonraki soru 3 saniye içinde başlıyor...</p>
             </div>
         </div>
+    </div> <!-- End of .app-container -->
 
     <!-- Audio Element -->
     <audio id="audioPlayer" preload="auto"></audio>
