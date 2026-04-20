@@ -155,7 +155,7 @@ const modeButtons = document.querySelectorAll('#modeSidebar .cat-btn');
 
 const volumeContainer = document.getElementById('volumeContainer');
 const livesContainer = document.getElementById('livesContainer');
-const hearts = document.querySelectorAll('#livesContainer .heart');
+const hearts = document.querySelectorAll('#livesContainer .heart-nebula');
 const hintsGrid = document.getElementById('hintsGrid');
 const hintYear = document.getElementById('hintYear');
 const hintCast = document.getElementById('hintCast');
@@ -179,7 +179,10 @@ const globalScoreboard = document.getElementById('globalScoreboard');
 const globalScoreList = document.getElementById('globalScoreList');
 const progressBarContainer = document.getElementById('progressBarContainer');
 const searchSection = document.getElementById('searchSection');
-const currentCategoryName = document.getElementById('currentCategoryName');
+const musicCategoryPanel = document.getElementById('musicCategoryPanel');
+const movieCategoryPanel = document.getElementById('movieCategoryPanel');
+const musicCategoryName = document.getElementById('musicCategoryName');
+const movieCategoryName = document.getElementById('movieCategoryName');
 
 // Game State
 let score = 0;
@@ -195,6 +198,93 @@ let currentCategoryValue = 'rastgele';
 let currentMovieGenre = 'all'; // film mod kategori sec
 let currentMode = localStorage.getItem('gameMode') || 'song';
 let movieLives = 4;
+
+// Centralized UI Sync
+function updateCategoryUI() {
+    // Failsafe finding text for Music
+    let musicText = 'Karışık';
+    const musicDropdown = document.getElementById('musicCategoryList');
+    if (musicDropdown) {
+        const btns = musicDropdown.querySelectorAll('.cat-btn');
+        btns.forEach(btn => {
+            if (btn.dataset.val === currentCategoryValue) {
+                musicText = btn.textContent;
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+    const musicLabel = document.getElementById('musicCategoryName');
+    if(musicLabel) musicLabel.textContent = musicText.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+
+    // Failsafe finding text for Movie
+    let movieText = 'Hepsi';
+    const movieDropdown = document.getElementById('movieCategoryList');
+    if (movieDropdown) {
+        const btns = movieDropdown.querySelectorAll('.cat-btn');
+        btns.forEach(btn => {
+            if (btn.dataset.genre === currentMovieGenre) {
+                movieText = btn.textContent;
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+    const movieLabel = document.getElementById('movieCategoryName');
+    if(movieLabel) movieLabel.textContent = movieText.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+}
+
+function syncUIMode() {
+    if (currentMode === 'song') {
+        if(visualizerContainer) visualizerContainer.style.display = 'flex';
+        if(frameContainer) frameContainer.style.display = 'none';
+        if(musicCategoryPanel) musicCategoryPanel.style.display = 'flex';
+        if(movieCategoryPanel) movieCategoryPanel.style.display = 'none';
+        if(sidebarTitle) sidebarTitle.textContent = 'KONTROL PANELİ';
+        if(searchInput) searchInput.placeholder = 'Şarkı veya sanatçı yazın...';
+        if(volumeContainer) volumeContainer.style.display = 'flex';
+        if(livesContainer) livesContainer.style.display = 'none';
+        if(hintsGrid) hintsGrid.style.display = 'none';
+        if(hintBtn) hintBtn.style.display = 'block';
+        if(hintBox) hintBox.style.display = 'block';
+    } else if (currentMode === 'movie') {
+        if(visualizerContainer) visualizerContainer.style.display = 'none';
+        if(frameContainer) frameContainer.style.display = 'block';
+        if(musicCategoryPanel) musicCategoryPanel.style.display = 'none';
+        if(movieCategoryPanel) movieCategoryPanel.style.display = 'flex';
+        if(sidebarTitle) sidebarTitle.textContent = 'FİLM KATEGORİLERİ';
+        if(searchInput) searchInput.placeholder = 'Film adı yazın...';
+        if(volumeContainer) volumeContainer.style.display = 'none';
+        if(livesContainer) livesContainer.style.display = 'flex';
+        if(hintsGrid) hintsGrid.style.display = 'grid';
+        if(hintBtn) hintBtn.style.display = 'none';
+        if(hintBox) hintBox.style.display = 'none';
+    } else if (currentMode === 'streamer') {
+        if(visualizerContainer) visualizerContainer.style.display = 'none';
+        if(frameContainer) frameContainer.style.display = 'none';
+        if(musicCategoryPanel) musicCategoryPanel.style.display = 'flex';
+        if(movieCategoryPanel) movieCategoryPanel.style.display = 'none';
+        if(sidebarTitle) sidebarTitle.textContent = 'MÜZİK KATEGORİLERİ';
+        if(searchSection) searchSection.style.display = 'none';
+        if(progressBarContainer) progressBarContainer.style.display = 'none';
+        if(streamerSetup) streamerSetup.style.display = 'block';
+        if(statusMsg) statusMsg.textContent = 'Lütfen kurulumu tamamlayın.';
+    }
+}
+
+function closeSidebar(excludeElement = null) {
+    const sidebar = document.getElementById('categorySidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.style.display = 'none';
+    
+    // Close other dropdowns BUT don't touch the one we are about to open
+    document.querySelectorAll('.top-dropdown-trigger').forEach(p => {
+        if (p !== excludeElement) p.classList.remove('open');
+    });
+}
 let movieHintDetails = null;
 
 // -------------------------------------------------------------------------------------
@@ -281,25 +371,79 @@ function initGame() {
     });
 
     // --- Sidebar Aç/Kapat ---
-    function closeSidebar() {
-        categorySidebar.classList.remove('open');
-        modeSidebar.classList.remove('open');
-        sidebarOverlay.classList.remove('show');
+    categoryToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        categorySidebar.classList.toggle('open');
+        sidebarOverlay.style.display = categorySidebar.classList.contains('open') ? 'block' : 'none';
+    });
+
+    if (closeSidebarBtn) {
+        closeSidebarBtn.addEventListener('click', closeSidebar);
+    }
+    // Logo Click -> Go back to Song Mode
+    const nebulaLogo = document.getElementById('nebulaLogo');
+    if (nebulaLogo) {
+        nebulaLogo.addEventListener('click', () => {
+             if (currentMode !== 'song') {
+                 currentMode = 'song';
+                 localStorage.setItem('gameMode', 'song');
+                 resetGameForModeSwitch();
+                 syncUIMode();
+                 updateCategoryUI();
+                 loadNextRound();
+                 
+                 // Update sidebar active state
+                 modeButtons.forEach(b => {
+                     if(b.dataset.mode === 'song') b.classList.add('active');
+                     else b.classList.remove('active');
+                 });
+             }
+        });
     }
 
-    categoryToggleBtn.addEventListener('click', () => {
-        categorySidebar.classList.add('open');
-        sidebarOverlay.classList.add('show');
-    });
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
 
-    modeToggleTab.addEventListener('click', () => {
-        modeSidebar.classList.add('open');
-        sidebarOverlay.classList.add('show');
-    });
 
-    closeSidebarBtn.addEventListener('click', closeSidebar);
-    closeModeSidebarBtn.addEventListener('click', closeSidebar);
-    sidebarOverlay.addEventListener('click', closeSidebar);
+    // Top Pill toggles
+    if (musicCategoryPanel) {
+        musicCategoryPanel.addEventListener('click', (e) => {
+            if (e.target.closest('#musicCategoryPillContent')) {
+                 e.stopPropagation();
+                 if (categorySidebar.classList.contains('open')) {
+                     closeSidebar(musicCategoryPanel); // Exclude music panel from closing
+                     setTimeout(() => musicCategoryPanel.classList.add('open'), 10);
+                 } else {
+                     musicCategoryPanel.classList.toggle('open');
+                 }
+            }
+        });
+    }
+
+    if (movieCategoryPanel) {
+        movieCategoryPanel.addEventListener('click', (e) => {
+            if (e.target.closest('#movieCategoryPillContent')) {
+                 e.stopPropagation();
+                 if (categorySidebar.classList.contains('open')) {
+                     closeSidebar(movieCategoryPanel); // Exclude movie panel from closing
+                     setTimeout(() => movieCategoryPanel.classList.add('open'), 10);
+                 } else {
+                     movieCategoryPanel.classList.toggle('open');
+                 }
+            }
+        });
+    }
+
+    // Support both triggers for the same unified drawer
+    if (modeToggleTab) {
+        modeToggleTab.addEventListener('click', () => {
+            categorySidebar.classList.add('open');
+            sidebarOverlay.style.display = 'block';
+        });
+    }
+
+    if(closeModeSidebarBtn) closeModeSidebarBtn.addEventListener('click', closeSidebar);
 
     modeButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -309,12 +453,14 @@ function initGame() {
             modeButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
+            
             if(currentMode !== newMode) {
                 currentMode = newMode;
                 localStorage.setItem('gameMode', currentMode);
                 resetGameForModeSwitch();
-                loadNextRound();
+                syncUIMode(); // Immediate Visibility update
                 updateCategoryUI();
+                loadNextRound();
             }
             closeSidebar();
         });
@@ -327,15 +473,10 @@ function initGame() {
             catBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
-            const newVal = btn.dataset.val;
-            closeSidebar();
+            currentCategoryValue = btn.dataset.val;
             
-            if (currentCategoryValue !== newVal) {
-                currentCategoryValue = newVal;
-                // Reset game on selection
-                if(currentMode !== 'song') return; // Kategoriler sadece müzik modunda aktiftir
-                score = 0;
-                updateScoreUI();
+            // Mode check
+            if(currentMode === 'song') {
                 playedTrackIds.clear(); 
                 recentArtistHistory.length = 0; 
                 if(autoNextTimeout) clearTimeout(autoNextTimeout);
@@ -343,9 +484,13 @@ function initGame() {
                 audioPlayer.pause();
                 pulseRing.classList.remove('active');
                 btnCover.classList.remove('show');
-                loadNextRound();
+                
                 updateCategoryUI();
+                loadNextRound();
             }
+            
+            closeSidebar();
+            if(musicCategoryPanel) musicCategoryPanel.classList.remove('open');
         });
     });
 
@@ -354,16 +499,20 @@ function initGame() {
         btn.addEventListener('click', () => {
             movieCatBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const newGenre = btn.dataset.genre;
-            closeSidebar();
-            if (currentMovieGenre !== newGenre) {
-                currentMovieGenre = newGenre;
+            
+            currentMovieGenre = btn.dataset.genre;
+            
+            if(currentMode === 'movie') {
                 playedTrackIds.clear();
                 if (autoNextTimeout) clearTimeout(autoNextTimeout);
                 feedbackModal.classList.remove('show');
-                loadNextRound();
+                
                 updateCategoryUI();
+                loadNextRound();
             }
+            
+            closeSidebar();
+            if(movieCategoryPanel) movieCategoryPanel.classList.remove('open');
         });
     });
 
@@ -374,40 +523,33 @@ function initGame() {
     
     // Close dropdown on click outside
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-wrapper')) {
+        if (!e.target.closest('.search-nebula')) {
             autocompleteDropdown.classList.remove('show');
+        }
+        if (!e.target.closest('#musicCategoryPanel')) {
+            if (musicCategoryPanel) musicCategoryPanel.classList.remove('open');
+        }
+        if (!e.target.closest('#movieCategoryPanel')) {
+            if (movieCategoryPanel) movieCategoryPanel.classList.remove('open');
         }
     });
 
-    // Apply saved mode and start game
+    // Apply saved mode
+    if (localStorage.getItem('gameMode')) {
+        currentMode = localStorage.getItem('gameMode');
+    }
     modeButtons.forEach(btn => {
         if(btn.dataset.mode === currentMode) btn.classList.add('active');
         else btn.classList.remove('active');
     });
     resetGameForModeSwitch();
-    loadNextRound();
+    syncUIMode(); // ENSURE SYNC ON STARTUP
     updateCategoryUI();
-}
-
-function updateCategoryUI() {
-    if (!currentCategoryName) return;
-    let name = '-';
-    if (currentMode === 'song') {
-        const activeBtn = document.querySelector('#musicCategoryList .cat-btn.active');
-        name = activeBtn ? activeBtn.textContent : 'Karışık';
-    } else if (currentMode === 'movie') {
-        const activeBtn = document.querySelector('#movieCategoryList .cat-btn.active');
-        name = activeBtn ? activeBtn.textContent : 'Hepsi';
-    } else if (currentMode === 'streamer') {
-        name = 'Yayıncı Modu';
-    }
-    
-    // Emojileri temizle (opsiyonel ama daha temiz görünür)
-    currentCategoryName.textContent = name.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+    loadNextRound();
 }
 
 function updateScoreUI() {
-    scoreValue.textContent = score;
+    if (scoreValue) scoreValue.textContent = score;
 }
 
 function resetGameForModeSwitch() {
@@ -434,58 +576,21 @@ function resetGameForModeSwitch() {
         pusherInstance.disconnect();
         pusherInstance = null;
     }
-    
-    // UI Reset
-    visualizerContainer.style.display = 'none';
-    frameContainer.style.display = 'none';
-    searchSection.style.display = 'block';
-    categoryToggleBtn.style.display = 'flex';
-    document.getElementById('skipBtn').style.display = '';
-    document.getElementById('mainScorePanel').style.display = 'flex';
-    document.getElementById('mainScorePanel').style.visibility = 'visible';
-    livesContainer.style.display = 'none';
-    hintsGrid.style.display = 'none';
-    hintBtn.style.display = 'block';
-    hintBox.style.display = 'block';
-    trackStats.style.display = 'none';
-    statusMsg.textContent = '';
 
-    if (currentMode === 'song') {
-        visualizerContainer.style.display = 'flex';
-        musicCategoryList.style.display = 'flex';
-        movieCategoryList.style.display = 'none';
-        sidebarTitle.textContent = 'Müzik Kategorileri';
-        searchInput.placeholder = 'Şarkı veya sanatçı yazın...';
-        volumeContainer.style.display = 'flex';
-    } else if (currentMode === 'movie') {
-        frameContainer.style.display = 'block';
-        livesContainer.style.display = 'flex';
-        hintsGrid.style.display = 'grid';
-        hintBtn.style.display = 'none';
-        hintBox.style.display = 'none';
-        musicCategoryList.style.display = 'none';
-        movieCategoryList.style.display = 'flex';
-        sidebarTitle.textContent = 'Film Kategorileri';
-        searchInput.placeholder = 'Film adı yazın...';
-        volumeContainer.style.display = 'none'; // Film modunda ses yok
-    } else if (currentMode === 'streamer') {
-        searchSection.style.display = 'none';
-        progressBarContainer.style.display = 'none';
-        document.getElementById('mainScorePanel').style.display = 'none';
-        volumeContainer.style.display = 'none'; // Kurulumda ses gizle
-        hintBtn.style.display = 'none'; // Kurulumda ipucu gizle
-        document.getElementById('skipBtn').style.display = 'none'; // Kurulumda geç gizle
-        hintBox.style.display = 'none'; // Boş kutu gizle
-        statusMsg.textContent = 'Lütfen kurulumu tamamlayın.';
-        kickProfileCard.style.display = 'none';
-        startStreamerBtn.style.display = 'none';
-        kickStatusMsg.textContent = '';
-        streamerSetup.style.display = 'block';
+    // Streamer-specific layout resets (ensuring setup is shown)
+    if (currentMode === 'streamer') {
+        if(searchSection) searchSection.style.display = 'none';
+        if(progressBarContainer) progressBarContainer.style.display = 'none';
+        if(document.getElementById('mainScorePanel')) document.getElementById('mainScorePanel').style.display = 'none';
+        if(volumeContainer) volumeContainer.style.display = 'none';
+        if(hintBtn) hintBtn.style.display = 'none';
+        if(document.getElementById('skipBtn')) document.getElementById('skipBtn').style.display = 'none';
+        if(hintBox) hintBox.style.display = 'none';
+        if(streamerSetup) streamerSetup.style.display = 'block';
         document.body.classList.add('streamer-mode-active');
-        categoryToggleBtn.style.display = 'none'; // Kurulumda sol menüyü gizle
-        musicCategoryList.style.display = 'flex';
-        movieCategoryList.style.display = 'none';
-        sidebarTitle.textContent = 'Müzik Kategorileri';
+    } else {
+        document.body.classList.remove('streamer-mode-active');
+        if(document.getElementById('mainScorePanel')) document.getElementById('mainScorePanel').style.display = 'flex';
     }
 }
 
@@ -677,7 +782,7 @@ function endStreamerRound(earlyEnd = false) {
     audioPlayer.pause();
     pulseRing.classList.remove('active');
     btnCover.classList.add('show');
-    btnCover.querySelector('img').style.filter = 'blur(0px)'; // show exact image
+    btnCover.style.filter = 'blur(0px)'; // show exact image
     
     statusMsg.textContent = `${currentAnswer.artistName} - ${currentAnswer.trackName}`;
     progressBar.style.width = '100%';
@@ -738,7 +843,7 @@ function resetMovieUI() {
     [hintYear, hintCast, hintOverview].forEach(card => {
         card.classList.remove('unlocked');
         card.classList.add('locked');
-        card.querySelector('.value').textContent = '?';
+        card.querySelector('.val').textContent = '?';
     });
 }
 
@@ -749,16 +854,16 @@ function unlockMovieHint(level) {
         hintYear.classList.replace('locked', 'unlocked');
         const genres = movieHintDetails.genres.map(g => g.name).slice(0, 2).join(', ');
         const year = movieHintDetails.release_date.substring(0, 4);
-        hintYear.querySelector('.value').textContent = `${year} | ${genres}`;
+        hintYear.querySelector('.val').textContent = `${year} | ${genres}`;
     } else if (level === 2) {
         hintCast.classList.replace('locked', 'unlocked');
         const cast = movieHintDetails.credits.cast.slice(0, 3).map(c => c.name).join(', ');
-        hintCast.querySelector('.value').textContent = cast;
+        hintCast.querySelector('.val').textContent = cast;
     } else if (level === 3) {
         hintOverview.classList.replace('locked', 'unlocked');
         let text = movieHintDetails.overview;
         if (text.length > 60) text = text.substring(0, 57) + '...';
-        hintOverview.querySelector('.value').textContent = text || 'Özet bulunamadı';
+        hintOverview.querySelector('.val').textContent = text || 'Özet bulunamadı';
     }
 }
 
@@ -1144,11 +1249,21 @@ function analyzeBackdropImage(url) {
 
 function togglePlay() {
     if (audioPlayer.paused) {
-        audioPlayer.play();
-        playIcon.style.display = 'none';
-        pauseIcon.style.display = 'block';
-        pulseRing.classList.add('active');
-        isPlaying = true;
+        const playPromise = audioPlayer.play();
+        if (playPromise !== undefined) {
+            playPromise.then(_ => {
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+                pulseRing.classList.add('active');
+                isPlaying = true;
+            }).catch(error => {
+                console.error("Autoplay prevented or audio error:", error);
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+                pulseRing.classList.remove('active');
+                isPlaying = false;
+            });
+        }
     } else {
         audioPlayer.pause();
         playIcon.style.display = 'block';
