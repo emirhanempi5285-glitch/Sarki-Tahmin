@@ -183,6 +183,7 @@ const musicCategoryPanel = document.getElementById('musicCategoryPanel');
 const movieCategoryPanel = document.getElementById('movieCategoryPanel');
 const musicCategoryName = document.getElementById('musicCategoryName');
 const movieCategoryName = document.getElementById('movieCategoryName');
+const artistSuggestions = document.getElementById('artistSuggestions');
 
 // Game State
 let score = 0;
@@ -198,6 +199,7 @@ let currentCategoryValue = 'rastgele';
 let currentMovieGenre = 'all'; // film mod kategori sec
 let currentMode = localStorage.getItem('gameMode') || 'song';
 let movieLives = 4;
+let selectedCustomArtist = ''; // User entered artist name
 
 // Centralized UI Sync
 function updateCategoryUI() {
@@ -216,7 +218,13 @@ function updateCategoryUI() {
         });
     }
     const musicLabel = document.getElementById('musicCategoryName');
-    if(musicLabel) musicLabel.textContent = musicText.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+    if(musicLabel) {
+        if (currentCategoryValue === 'artist' && selectedCustomArtist) {
+            musicLabel.textContent = selectedCustomArtist;
+        } else {
+            musicLabel.textContent = musicText.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+        }
+    }
 
     // Failsafe finding text for Movie
     let movieText = 'Hepsi';
@@ -280,10 +288,31 @@ function closeSidebar(excludeElement = null) {
     if (sidebar) sidebar.classList.remove('open');
     if (overlay) overlay.style.display = 'none';
     
-    // Close other dropdowns BUT don't touch the one we are about to open
+    // Close other dropdowns BUT    // Also ensure top dropdowns are closed for a clean state
     document.querySelectorAll('.top-dropdown-trigger').forEach(p => {
         if (p !== excludeElement) p.classList.remove('open');
     });
+}
+
+function openArtistModal() {
+    const modal = document.getElementById('artistModal');
+    if (modal) {
+        modal.classList.add('show');
+        const input = document.getElementById('customArtistInput');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+        if (artistSuggestions) {
+            artistSuggestions.innerHTML = '';
+            artistSuggestions.classList.remove('show');
+        }
+    }
+}
+
+function closeArtistModal() {
+    const modal = document.getElementById('artistModal');
+    if (modal) modal.classList.remove('show');
 }
 let movieHintDetails = null;
 
@@ -475,6 +504,12 @@ function initGame() {
             
             currentCategoryValue = btn.dataset.val;
             
+            if (currentCategoryValue === 'artist') {
+                closeSidebar();
+                openArtistModal();
+                return; // Wait for modal confirm
+            }
+            
             // Mode check
             if(currentMode === 'song') {
                 playedTrackIds.clear(); 
@@ -546,6 +581,45 @@ function initGame() {
     syncUIMode(); // ENSURE SYNC ON STARTUP
     updateCategoryUI();
     loadNextRound();
+
+    // Artist Modal Listeners
+    const cancelArtistBtn = document.getElementById('cancelArtistBtn');
+    const confirmArtistBtn = document.getElementById('confirmArtistBtn');
+    const customArtistInput = document.getElementById('customArtistInput');
+
+    if (cancelArtistBtn) {
+        cancelArtistBtn.addEventListener('click', closeArtistModal);
+    }
+
+    if (confirmArtistBtn) {
+        const handleConfirm = () => {
+            const val = customArtistInput.value.trim();
+            if (val) {
+                selectedCustomArtist = val;
+                currentCategoryValue = 'artist';
+                closeArtistModal();
+                playedTrackIds.clear();
+                recentArtistHistory.length = 0;
+                updateCategoryUI();
+                loadNextRound();
+            }
+        };
+        confirmArtistBtn.addEventListener('click', handleConfirm);
+        customArtistInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleConfirm();
+        });
+
+        // Autocomplete for Artist
+        customArtistInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            if (searchTimeout) clearTimeout(searchTimeout);
+            if (query.length < 2) {
+                artistSuggestions.classList.remove('show');
+                return;
+            }
+            searchTimeout = setTimeout(() => searchArtistsAPI(query), 400);
+        });
+    }
 }
 
 function updateScoreUI() {
@@ -877,14 +951,17 @@ async function loadNextAudioTask() {
     progressBar.style.width = '0%';
     statusMsg.textContent = 'Yeni bir hit aranıyor...';
     trackStats.style.display = 'none';
-    btnCover.style.filter = ''; // CSS filtresini sıfırla
+    btnCover.style.filter = ''; 
     usedHint = false;
     
     try {
-        // Determine artist pool based on category
         let artistPool = [];
-        if (currentCategoryValue === 'rastgele') {
-            const excludedCategories = ['film', 'oyun'];
+        let forceArtist = null;
+
+        if (currentCategoryValue === 'artist') {
+            forceArtist = selectedCustomArtist;
+        } else if (currentCategoryValue === 'rastgele') {
+            const excludedCategories = ['film', 'oyun', 'artist'];
             artistPool = Object.keys(CATEGORIES)
                 .filter(key => !excludedCategories.includes(key))
                 .flatMap(key => CATEGORIES[key]);
@@ -892,34 +969,35 @@ async function loadNextAudioTask() {
             artistPool = CATEGORIES[currentCategoryValue];
         }
         
-        if (playedTrackIds.size > 500) playedTrackIds.clear(); // Belleği temizle
+        if (playedTrackIds.size > 500) playedTrackIds.clear(); 
         
-        // Akıllı Shuffle Sistemi: Son çalınan sanatçıları havuzdan geçici süre çıkar
-        const maxHistory = Math.max(1, Math.floor(artistPool.length / 2)); 
-        const prohibitedArtists = recentArtistHistory.slice(-maxHistory);
-        
-        let artistCandidates = artistPool.filter(a => !prohibitedArtists.includes(a));
-        if (artistCandidates.length === 0) artistCandidates = artistPool; // Havuz çok küçükse zorunlu fallback
-        
-        // Yeni sanatçıyı seç ve hafızaya ekle
-        const artist = artistCandidates[Math.floor(Math.random() * artistCandidates.length)];
-        recentArtistHistory.push(artist);
-        if (recentArtistHistory.length > 50) recentArtistHistory.shift();
+        let artist = "";
+        if (forceArtist) {
+            artist = forceArtist;
+        } else {
+            const maxHistory = Math.max(1, Math.floor(artistPool.length / 2)); 
+            const prohibitedArtists = recentArtistHistory.slice(-maxHistory);
+            
+            let artistCandidates = artistPool.filter(a => !prohibitedArtists.includes(a));
+            if (artistCandidates.length === 0) artistCandidates = artistPool; 
+            
+            artist = artistCandidates[Math.floor(Math.random() * artistCandidates.length)];
+            recentArtistHistory.push(artist);
+            if (recentArtistHistory.length > 50) recentArtistHistory.shift();
+        }
 
-        // Fetch from iTunes API (attribute=artistTerm ensures strict Artist matching)
         const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&limit=50&entity=song&media=music&attribute=artistTerm`);
         const data = await response.json();
         
-        const excludeKeywords = ['live', 'remix', 'mix', 'karaoke', 'instrumental', 'version', 'acoustic', 'edit'];
+        const excludeKeywords = ['live', 'remix', 'mix', 'karaoke', 'instrumental', 'version', 'acoustic', 'edit', 'remaster', 'concert'];
         
-        // Filter songs: Has URL, Not Played Before, Strictly Matches Artist, Excludes Remixes
         const validSongs = data.results.filter(song => {
             if (!song.previewUrl) return false;
-            if (playedTrackIds.has(song.trackId)) return false; // Daha önce basildiyse gec
+            if (playedTrackIds.has(song.trackId)) return false; 
             
             const sArtist = song.artistName.toLowerCase();
             const qArtist = artist.toLowerCase();
-            if (!sArtist.includes(qArtist) && !qArtist.includes(sArtist)) return false; // Kesin sanatçı denetimi
+            if (!sArtist.includes(qArtist) && !qArtist.includes(sArtist)) return false; 
             
             const trackLower = song.trackName.toLowerCase();
             if (excludeKeywords.some(keyword => trackLower.includes(keyword))) return false;
@@ -1346,7 +1424,47 @@ async function searchSongs(query) {
 
 function renderDropdown(items) {
     autocompleteDropdown.innerHTML = '';
-    
+}
+
+// Artist Selection Autocomplete Logic
+async function searchArtistsAPI(query) {
+    try {
+        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=10&entity=musicArtist&media=music`);
+        const data = await response.json();
+        if (data.results && data.results.length > 0) {
+            renderArtistSuggestions(data.results);
+        } else {
+            artistSuggestions.innerHTML = '<div class="autocomplete-item"><span class="title">Sonuç bulunamadı</span></div>';
+            artistSuggestions.classList.add('show');
+        }
+    } catch (err) {
+        console.error("Artist search error", err);
+    }
+}
+
+function renderArtistSuggestions(results) {
+    artistSuggestions.innerHTML = '';
+    results.forEach(artist => {
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        const genre = artist.primaryGenreName ? ` - ${artist.primaryGenreName}` : '';
+        item.innerHTML = `
+            <span class="title">${artist.artistName}</span>
+            <span class="subtitle">${genre}</span>
+        `;
+        item.addEventListener('click', () => {
+            document.getElementById('customArtistInput').value = artist.artistName;
+            artistSuggestions.classList.remove('show');
+            // Auto-confirm selection
+            document.getElementById('confirmArtistBtn').click();
+        });
+        artistSuggestions.appendChild(item);
+    });
+    artistSuggestions.classList.add('show');
+}
+
+function renderDropdown(items) {
+    autocompleteDropdown.innerHTML = '';
     items.forEach(item => {
         const div = document.createElement('div');
         div.className = 'dropdown-item';
@@ -1364,7 +1482,6 @@ function renderDropdown(items) {
         
         autocompleteDropdown.appendChild(div);
     });
-    
     autocompleteDropdown.classList.add('show');
 }
 
