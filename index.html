@@ -71,6 +71,7 @@
                             <button class="cat-btn" data-val="turkce_rap">🇹🇷 Rap</button>
                             <button class="cat-btn" data-val="film">🎬 Soundtrack</button>
                             <button class="cat-btn" data-val="oyun">🎮 Game OST</button>
+                            <button class="cat-btn" data-val="artist">👤 Sanatçı</button>
                         </div>
                     </div>
                 </div>
@@ -290,13 +291,32 @@
 
     <!-- Sidebar Overlay -->
     <div id="sidebarOverlay" class="nebula-overlay-bg"></div>
--    <div class="beta-warning-nebula">🚧 BETA v3.0.3 - NEBULA UI</div>
-+    <div class="beta-warning-nebula">🚧 BETA v3.0.4 - NEBULA UI</div>
+
+    <!-- Artist Selection Modal -->
+    <div id="artistModal" class="nebula-modal-overlay">
+        <div class="nebula-modal-panel glass animate-pop">
+            <div class="modal-header">
+                <h3>SANATÇI SEÇ</h3>
+                <p>Şarkılarını dinlemek istediğiniz sanatçıyı yazın.</p>
+            </div>
+            <div class="modal-body">
+                <div class="input-wrapper-nebula">
+                    <input type="text" id="customArtistInput" placeholder="Sanatçı adı (örn: Tarkan, The Weeknd)..." autocomplete="off">
+                    <div id="artistSuggestions" class="nebula-autocomplete-list"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelArtistBtn" class="modal-btn secondary">Vazgeç</button>
+                <button id="confirmArtistBtn" class="modal-btn primary">Tamam</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="beta-warning-nebula">🚧 BETA v3.0.4 - NEBULA UI</div>
 
     <!-- Audio Engine -->
     <audio id="audioPlayer" preload="auto"></audio>
 
--    <script src="app.js?v=3.0.3"></script>
 +    <script src="app.js?v=3.0.4"></script>
 </body>
 </html>
