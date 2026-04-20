@@ -21,6 +21,27 @@ const CATEGORIES = {
         "David Bowie", "Duran Duran", "Phil Collins", "Bruce Springsteen", "U2", 
         "Depeche Mode", "Eurythmics", "Tina Turner", "Elton John", "Cher"
     ],
+    turkce_pop: [
+        "Sezen Aksu", "Tarkan", "Mabel Matiz", "Gülşen", "Kenan Doğulu", 
+        "Sertab Erener", "Zeynep Bastık", "Simge", "Edis",
+        "Hande Yener", "Demet Akalın", "Yalın", "Göksel", "Mustafa Sandal",
+        "Murat Boz", "Oğuzhan Koç", "İrem Derici", "Aleyna Tilki", "Derya Uluğ"
+    ],
+    turkce_90lar_pop: [
+        "Levent Yüksel", "Mirkelam", "Yonca Evcimik", "Burak Kut", "Çelik", 
+        "Aşkın Nur Yengi", "Serdar Ortaç", "Nazan Öncel", "Hakan Peker", "İzel",
+        "Oya Bora", "Tayfun", "Harun Kolçak", "Demet Sağıroğlu", "Gökhan Kırdar", 
+        "Bendeniz", "Rafet El Roman", "Reyhan Karaca"
+    ],
+    turk_sanat_muzigi: [
+        "Zeki Müren", "Müzeyyen Senar", "Bülent Ersoy", "Emel Sayın", 
+        "Muazzez Abacı", "Safiye Ayla", "Neşet Ertaş", "Ahmet Özhan", "Gönül Yazar"
+    ],
+    turkce_arabesk: [
+        "Müslüm Gürses", "İbrahim Tatlıses", "Ferdi Tayfur", "Orhan Gencebay", 
+        "Bergen", "Ebru Gündeş", "Sibel Can", "Cengiz Kurtoğlu", "Hakkı Bulut", "Kibariye",
+        "Ceylan", "Hakan Taşıyan", "Yıldız Tilbe", "Emrah", "Zara", "Linet"
+    ],
     global_rock: [
         "Queen", "Pink Floyd", "The Rolling Stones",
         "Arctic Monkeys", "Led Zeppelin", "Foo Fighters",
@@ -31,6 +52,21 @@ const CATEGORIES = {
         "Ramones", "The Clash", "Sex Pistols", "Green Day", "Blink-182", 
         "The Offspring", "Sum 41", "Misfits", "Bad Religion", "Pennywise", "NOFX"
     ],
+    turkce_rock: [
+        "Mor ve Ötesi", "Duman", "Athena", "Teoman", "Şebnem Ferah", 
+        "Manga", "Pinhani", "Kurban", "Yüksek Sadakat", "Gripin",
+        "Gece Yolcuları", "Emre Aydın", "Ogün Sanlısoy", "Feridun Düzağaç", 
+        "Bulutsuzluk Özlemi", "Kargo", "Redd", "Zakkum", "Seksendört"
+    ],
+    anadolu_rock: [
+        "Barış Manço", "Cem Karaca", "Erkin Koray", "Moğollar",
+        "Edip Akbayram", "Selda Bağcan", "Barış Akarsu", "Kıraç", "Murat Kekilli", "Ayna"
+    ],
+    turkce_indie: [
+        "Adamlar", "Yüzyüzeyken Konuşuruz", "Dolu Kadehi Ters Tut", "Madrigal", 
+        "Kaan Boşnak", "Büyük Ev Ablukada", "Perdenin Ardındakiler", "Ufuk Beydemir", "Evdeki Saat",
+        "Son Feci Bisiklet", "Sena Şener", "Nova Norda", "Palmiyeler", "Emir Can İğrek", "Köfn"
+    ],
     global_metal: [
         "Metallica", "Iron Maiden", "Megadeth", "Avenged Sevenfold", "Pantera",
         "Black Sabbath", "Judas Priest", "Motörhead", "Slayer", "Anthrax", 
@@ -40,9 +76,19 @@ const CATEGORIES = {
         "Slipknot", "System of a Down", "Korn", "Deftones", "Limp Bizkit", 
         "Disturbed", "Papa Roach", "Mudvayne", "Drowning Pool", "Static-X", "Linkin Park"
     ],
+    turkce_metal: [
+        "Pentagram", "Hayko Cepkin", "Murder King", "Black Tooth", "Pitch Black Process",
+        "Cenotaph", "Whisky", "Almora", "Acil Servis", "Nekropsi", "Radical Noise"
+    ],
     global_rap: [
         "Kendrick Lamar", "J. Cole", "Travis Scott", "Future", "Migos", "A$AP Rocky", 
         "Tyler, The Creator", "Mac Miller", "Logic", "Jay-Z", "Lil Wayne", "Nicki Minaj"
+    ],
+    turkce_rap: [
+        "Ceza", "Sagopa Kajmer", "Ezhel", "Murda", "Gazapizm", "Şanışer",
+        "Ben Fero", "Uzi", "Cakal", "Motive", "Killa Hakan", "Norm Ender",
+        "Şehinşah", "Allâme", "Patron", "Sansar Salvo", "Defkhan", "Massaka", 
+        "Fuat", "Contra", "Anıl Piyancı", "Server Uraz", "Hidra", "No.1", "Khontkar"
     ],
     film: [
         "Hans Zimmer", "John Williams", "Ennio Morricone", "Ramin Djawadi", 
@@ -101,9 +147,15 @@ const feedbackCover = document.getElementById('feedbackCover');
 const feedbackTrack = document.getElementById('feedbackTrack');
 const feedbackArtist = document.getElementById('feedbackArtist');
 
+// Movie UI Elements
+const visualizerContainer = document.getElementById('visualizerContainer');
+const frameContainer = document.getElementById('frameContainer');
+const movieFrame = document.getElementById('movieFrame');
+const modeButtons = document.querySelectorAll('#modeSidebar .cat-btn');
+
 const volumeContainer = document.getElementById('volumeContainer');
 const livesContainer = document.getElementById('livesContainer');
-const hearts = document.querySelectorAll('#livesContainer .heart');
+const hearts = document.querySelectorAll('#livesContainer .heart-nebula');
 const hintsGrid = document.getElementById('hintsGrid');
 const hintYear = document.getElementById('hintYear');
 const hintCast = document.getElementById('hintCast');
@@ -127,13 +179,10 @@ const globalScoreboard = document.getElementById('globalScoreboard');
 const globalScoreList = document.getElementById('globalScoreList');
 const progressBarContainer = document.getElementById('progressBarContainer');
 const searchSection = document.getElementById('searchSection');
-const currentCategoryName = document.getElementById('currentCategoryName');
-
-// Movie UI Elements (required for mode switching)
-const visualizerContainer = document.getElementById('visualizerContainer');
-const frameContainer = document.getElementById('frameContainer');
-const movieFrame = document.getElementById('movieFrame');
-const modeButtons = document.querySelectorAll('#modeSidebar .cat-btn');
+const musicCategoryPanel = document.getElementById('musicCategoryPanel');
+const movieCategoryPanel = document.getElementById('movieCategoryPanel');
+const musicCategoryName = document.getElementById('musicCategoryName');
+const movieCategoryName = document.getElementById('movieCategoryName');
 
 // Game State
 let score = 0;
@@ -143,18 +192,117 @@ let searchTimeout = null;
 let autoNextTimeout = null;
 let audioRetryTimeout = null;
 const playedTrackIds = new Set();
-const recentArtistHistory = []; // To prevent same artists consecutively
+const recentArtistHistory = []; // Aynı sanatçıların üst üste gelmesini engellemek için
 let usedHint = false;
 let currentCategoryValue = 'rastgele';
-let currentMovieGenre = 'all'; 
+let currentMovieGenre = 'all'; // film mod kategori sec
 let currentMode = localStorage.getItem('gameMode') || 'song';
 let movieLives = 4;
+
+// Centralized UI Sync
+function updateCategoryUI() {
+    // Failsafe finding text for Music
+    let musicText = 'Karışık';
+    const musicDropdown = document.getElementById('musicCategoryList');
+    if (musicDropdown) {
+        const btns = musicDropdown.querySelectorAll('.cat-btn');
+        btns.forEach(btn => {
+            if (btn.dataset.val === currentCategoryValue) {
+                musicText = btn.textContent;
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+    const musicLabel = document.getElementById('musicCategoryName');
+    if(musicLabel) musicLabel.textContent = musicText.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+
+    // Failsafe finding text for Movie
+    let movieText = 'Hepsi';
+    const movieDropdown = document.getElementById('movieCategoryList');
+    if (movieDropdown) {
+        const btns = movieDropdown.querySelectorAll('.cat-btn');
+        btns.forEach(btn => {
+            if (btn.dataset.genre === currentMovieGenre) {
+                movieText = btn.textContent;
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+    const movieLabel = document.getElementById('movieCategoryName');
+    if(movieLabel) movieLabel.textContent = movieText.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+}
+
+function syncUIMode() {
+    if (currentMode === 'song') {
+        if(visualizerContainer) visualizerContainer.style.display = 'flex';
+        if(frameContainer) frameContainer.style.display = 'none';
+        if(musicCategoryPanel) musicCategoryPanel.style.display = 'flex';
+        if(movieCategoryPanel) movieCategoryPanel.style.display = 'none';
+        if(sidebarTitle) sidebarTitle.textContent = 'CONTROL PANEL';
+        if(searchInput) searchInput.placeholder = 'Type song or artist...';
+        if(volumeContainer) volumeContainer.style.display = 'flex';
+        if(livesContainer) livesContainer.style.display = 'none';
+        if(hintsGrid) hintsGrid.style.display = 'none';
+        if(hintBtn) hintBtn.style.display = 'block';
+        if(hintBox) hintBox.style.display = 'block';
+    } else if (currentMode === 'movie') {
+        if(visualizerContainer) visualizerContainer.style.display = 'none';
+        if(frameContainer) frameContainer.style.display = 'block';
+        if(musicCategoryPanel) musicCategoryPanel.style.display = 'none';
+        if(movieCategoryPanel) movieCategoryPanel.style.display = 'flex';
+        if(sidebarTitle) sidebarTitle.textContent = 'FİLM CATEGORYLERİ';
+        if(searchInput) searchInput.placeholder = 'Type movie name...';
+        if(volumeContainer) volumeContainer.style.display = 'none';
+        if(livesContainer) livesContainer.style.display = 'flex';
+        if(hintsGrid) hintsGrid.style.display = 'grid';
+        if(hintBtn) hintBtn.style.display = 'none';
+        if(hintBox) hintBox.style.display = 'none';
+    } else if (currentMode === 'streamer') {
+        if(visualizerContainer) visualizerContainer.style.display = 'none';
+        if(frameContainer) frameContainer.style.display = 'none';
+        if(musicCategoryPanel) musicCategoryPanel.style.display = 'flex';
+        if(movieCategoryPanel) movieCategoryPanel.style.display = 'none';
+        if(sidebarTitle) sidebarTitle.textContent = 'MÜZİK CATEGORYLERİ';
+        if(searchSection) searchSection.style.display = 'none';
+        if(progressBarContainer) progressBarContainer.style.display = 'none';
+        if(streamerSetup) streamerSetup.style.display = 'block';
+        if(statusMsg) statusMsg.textContent = 'Please complete setup.';
+    }
+}
+
+function closeSidebar(excludeElement = null) {
+    const sidebar = document.getElementById('categorySidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.style.display = 'none';
+    
+    // Close other dropdowns BUT don't touch the one we are about to open
+    document.querySelectorAll('.top-dropdown-trigger').forEach(p => {
+        if (p !== excludeElement) p.classList.remove('open');
+    });
+}
 let movieHintDetails = null;
 
+// -------------------------------------------------------------------------------------
+// INIT: Restore Mode from LocalStorage
+// -------------------------------------------------------------------------------------
+function initModeFromStorage() {
+    const savedMode = localStorage.getItem('gameMode');
+    if (savedMode) {
+        currentMode = savedMode;
+    }
+}
+
+// Initialization calls moved to after all variable declarations (see below)
+
 // Streamer Mode State
-let globalScores = {}; 
-let roundWinnersData = []; 
-let userGuesses = {}; 
+let globalScores = {}; // { username: score }
+let roundWinnersData = []; // [{ username, points, time }]
+let userGuesses = {}; // { username: count }
 let pusherInstance = null;
 let pusherChannelInfo = null;
 let currentChatroomId = null;
@@ -162,7 +310,7 @@ let streamerRoundTimer = null;
 let roundMaxTime = 45;
 let currentRoundTime = 0;
 let isStreamerRoundActive = false;
-let isStreamerBattleActive = false;
+let isStreamerBattleActive = false; // New flag for battle phase
 
 
 const FREE_TMDB_KEYS = [
@@ -192,15 +340,8 @@ function getTmdbApiKey() {
     return FREE_TMDB_KEYS[Math.floor(Math.random() * FREE_TMDB_KEYS.length)];
 }
 
-// Initialize
-function initModeFromStorage() {
-    const savedMode = localStorage.getItem('gameMode');
-    if (savedMode) {
-        currentMode = savedMode;
-    }
-}
-
 // Global initialization - script is at end of body, DOM is ready
+// MUST be after all let/const declarations to avoid Temporal Dead Zone errors
 initModeFromStorage();
 initGame();
 
@@ -230,25 +371,79 @@ function initGame() {
     });
 
     // --- Sidebar Aç/Kapat ---
-    function closeSidebar() {
-        categorySidebar.classList.remove('open');
-        modeSidebar.classList.remove('open');
-        sidebarOverlay.classList.remove('show');
+    categoryToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        categorySidebar.classList.toggle('open');
+        sidebarOverlay.style.display = categorySidebar.classList.contains('open') ? 'block' : 'none';
+    });
+
+    if (closeSidebarBtn) {
+        closeSidebarBtn.addEventListener('click', closeSidebar);
+    }
+    // Logo Click -> Go back to Song Mode
+    const nebulaLogo = document.getElementById('nebulaLogo');
+    if (nebulaLogo) {
+        nebulaLogo.addEventListener('click', () => {
+             if (currentMode !== 'song') {
+                 currentMode = 'song';
+                 localStorage.setItem('gameMode', 'song');
+                 resetGameForModeSwitch();
+                 syncUIMode();
+                 updateCategoryUI();
+                 loadNextRound();
+                 
+                 // Update sidebar active state
+                 modeButtons.forEach(b => {
+                     if(b.dataset.mode === 'song') b.classList.add('active');
+                     else b.classList.remove('active');
+                 });
+             }
+        });
     }
 
-    categoryToggleBtn.addEventListener('click', () => {
-        categorySidebar.classList.add('open');
-        sidebarOverlay.classList.add('show');
-    });
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
 
-    modeToggleTab.addEventListener('click', () => {
-        modeSidebar.classList.add('open');
-        sidebarOverlay.classList.add('show');
-    });
 
-    closeSidebarBtn.addEventListener('click', closeSidebar);
-    closeModeSidebarBtn.addEventListener('click', closeSidebar);
-    sidebarOverlay.addEventListener('click', closeSidebar);
+    // Top Pill toggles
+    if (musicCategoryPanel) {
+        musicCategoryPanel.addEventListener('click', (e) => {
+            if (e.target.closest('#musicCategoryPillContent')) {
+                 e.stopPropagation();
+                 if (categorySidebar.classList.contains('open')) {
+                     closeSidebar(musicCategoryPanel); // Exclude music panel from closing
+                     setTimeout(() => musicCategoryPanel.classList.add('open'), 10);
+                 } else {
+                     musicCategoryPanel.classList.toggle('open');
+                 }
+            }
+        });
+    }
+
+    if (movieCategoryPanel) {
+        movieCategoryPanel.addEventListener('click', (e) => {
+            if (e.target.closest('#movieCategoryPillContent')) {
+                 e.stopPropagation();
+                 if (categorySidebar.classList.contains('open')) {
+                     closeSidebar(movieCategoryPanel); // Exclude movie panel from closing
+                     setTimeout(() => movieCategoryPanel.classList.add('open'), 10);
+                 } else {
+                     movieCategoryPanel.classList.toggle('open');
+                 }
+            }
+        });
+    }
+
+    // Support both triggers for the same unified drawer
+    if (modeToggleTab) {
+        modeToggleTab.addEventListener('click', () => {
+            categorySidebar.classList.add('open');
+            sidebarOverlay.style.display = 'block';
+        });
+    }
+
+    if(closeModeSidebarBtn) closeModeSidebarBtn.addEventListener('click', closeSidebar);
 
     modeButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -258,16 +453,19 @@ function initGame() {
             modeButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
+            
             if(currentMode !== newMode) {
                 currentMode = newMode;
                 localStorage.setItem('gameMode', currentMode);
                 resetGameForModeSwitch();
-                loadNextRound();
+                syncUIMode(); // Immediate Visibility update
                 updateCategoryUI();
+                loadNextRound();
             }
             closeSidebar();
         });
     });
+
 
     // Sidebar'dan kategori seçme
     catBtns.forEach(btn => {
@@ -275,15 +473,10 @@ function initGame() {
             catBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
-            const newVal = btn.dataset.val;
-            closeSidebar();
+            currentCategoryValue = btn.dataset.val;
             
-            if (currentCategoryValue !== newVal) {
-                currentCategoryValue = newVal;
-                // Reset game on selection
-                if(currentMode !== 'song') return;
-                score = 0;
-                updateScoreUI();
+            // Mode check
+            if(currentMode === 'song') {
                 playedTrackIds.clear(); 
                 recentArtistHistory.length = 0; 
                 if(autoNextTimeout) clearTimeout(autoNextTimeout);
@@ -291,69 +484,72 @@ function initGame() {
                 audioPlayer.pause();
                 pulseRing.classList.remove('active');
                 btnCover.classList.remove('show');
-                loadNextRound();
+                
                 updateCategoryUI();
+                loadNextRound();
             }
+            
+            closeSidebar();
+            if(musicCategoryPanel) musicCategoryPanel.classList.remove('open');
         });
     });
 
+    // Film kategori butonlari
     movieCatBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             movieCatBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const newGenre = btn.dataset.genre;
-            closeSidebar();
-            if (currentMovieGenre !== newGenre) {
-                currentMovieGenre = newGenre;
+            
+            currentMovieGenre = btn.dataset.genre;
+            
+            if(currentMode === 'movie') {
                 playedTrackIds.clear();
                 if (autoNextTimeout) clearTimeout(autoNextTimeout);
                 feedbackModal.classList.remove('show');
-                loadNextRound();
+                
                 updateCategoryUI();
+                loadNextRound();
             }
+            
+            closeSidebar();
+            if(movieCategoryPanel) movieCategoryPanel.classList.remove('open');
         });
     });
 
     audioPlayer.addEventListener('timeupdate', updateProgress);
     audioPlayer.addEventListener('ended', onAudioEnd);
     searchInput.addEventListener('input', handleSearchInput);
+
     
     // Close dropdown on click outside
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-wrapper')) {
+        if (!e.target.closest('.search-nebula')) {
             autocompleteDropdown.classList.remove('show');
+        }
+        if (!e.target.closest('#musicCategoryPanel')) {
+            if (musicCategoryPanel) musicCategoryPanel.classList.remove('open');
+        }
+        if (!e.target.closest('#movieCategoryPanel')) {
+            if (movieCategoryPanel) movieCategoryPanel.classList.remove('open');
         }
     });
 
-    // Apply saved mode and start game
+    // Apply saved mode
+    if (localStorage.getItem('gameMode')) {
+        currentMode = localStorage.getItem('gameMode');
+    }
     modeButtons.forEach(btn => {
         if(btn.dataset.mode === currentMode) btn.classList.add('active');
         else btn.classList.remove('active');
     });
     resetGameForModeSwitch();
-    loadNextRound();
+    syncUIMode(); // ENSURE SYNC ON STARTUP
     updateCategoryUI();
-}
-
-function updateCategoryUI() {
-    if (!currentCategoryName) return;
-    let name = '-';
-    if (currentMode === 'song') {
-        const activeBtn = document.querySelector('#musicCategoryList .cat-btn.active');
-        name = activeBtn ? activeBtn.textContent : 'Mixed';
-    } else if (currentMode === 'movie') {
-        const activeBtn = document.querySelector('#movieCategoryList .cat-btn.active');
-        name = activeBtn ? activeBtn.textContent : 'All';
-    } else if (currentMode === 'streamer') {
-        name = 'Streamer Mode';
-    }
-    
-    // Clear emojis
-    currentCategoryName.textContent = name.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+    loadNextRound();
 }
 
 function updateScoreUI() {
-    scoreValue.textContent = score;
+    if (scoreValue) scoreValue.textContent = score;
 }
 
 function resetGameForModeSwitch() {
@@ -372,8 +568,6 @@ function resetGameForModeSwitch() {
     globalScoreboard.style.display = 'none';
     progressBarContainer.style.display = 'block';
     roundWinners.style.display = 'none';
-    document.body.classList.remove('streamer-mode-active');
-    if(streamerRoundTimer) clearInterval(streamerRoundTimer);
     isStreamerRoundActive = false;
     isStreamerBattleActive = false;
     document.body.classList.remove('streamer-battle-active');
@@ -382,58 +576,21 @@ function resetGameForModeSwitch() {
         pusherInstance.disconnect();
         pusherInstance = null;
     }
-    
-    // UI Reset
-    visualizerContainer.style.display = 'none';
-    frameContainer.style.display = 'none';
-    searchSection.style.display = 'block';
-    categoryToggleBtn.style.display = 'flex'; // Her modda önce bir göster (Yayıncıda tekrar gizleyeceğiz)
-    document.getElementById('skipBtn').style.display = '';
-    document.getElementById('mainScorePanel').style.display = 'flex';
-    document.getElementById('mainScorePanel').style.visibility = 'visible';
-    livesContainer.style.display = 'none';
-    hintsGrid.style.display = 'none';
-    hintBtn.style.display = 'block';
-    hintBox.style.display = 'block';
-    trackStats.style.display = 'none';
-    statusMsg.textContent = '';
 
-    if (currentMode === 'song') {
-        visualizerContainer.style.display = 'flex';
-        musicCategoryList.style.display = 'flex';
-        movieCategoryList.style.display = 'none';
-        sidebarTitle.textContent = 'Music Categories';
-        searchInput.placeholder = 'Type song or artist...';
-        volumeContainer.style.display = 'flex';
-    } else if (currentMode === 'movie') {
-        frameContainer.style.display = 'block';
-        livesContainer.style.display = 'flex';
-        hintsGrid.style.display = 'grid';
-        hintBtn.style.display = 'none';
-        hintBox.style.display = 'none';
-        musicCategoryList.style.display = 'none';
-        movieCategoryList.style.display = 'flex';
-        sidebarTitle.textContent = 'Movie Categories';
-        searchInput.placeholder = 'Enter movie title...';
-        volumeContainer.style.display = 'none'; // No audio in movies
-    } else if (currentMode === 'streamer') {
-        searchSection.style.display = 'none';
-        progressBarContainer.style.display = 'none';
-        document.getElementById('mainScorePanel').style.display = 'none';
-        volumeContainer.style.display = 'none'; // Hide audio in setup
-        hintBtn.style.display = 'none'; // Hide hints in setup
-        document.getElementById('skipBtn').style.display = 'none'; // Hide skip in setup
-        hintBox.style.display = 'none'; // Hide empty box in setup
-        statusMsg.textContent = 'Please complete the setup.';
-        kickProfileCard.style.display = 'none';
-        startStreamerBtn.style.display = 'none';
-        kickStatusMsg.textContent = '';
-        streamerSetup.style.display = 'block';
+    // Streamer-specific layout resets (ensuring setup is shown)
+    if (currentMode === 'streamer') {
+        if(searchSection) searchSection.style.display = 'none';
+        if(progressBarContainer) progressBarContainer.style.display = 'none';
+        if(document.getElementById('mainScorePanel')) document.getElementById('mainScorePanel').style.display = 'none';
+        if(volumeContainer) volumeContainer.style.display = 'none';
+        if(hintBtn) hintBtn.style.display = 'none';
+        if(document.getElementById('skipBtn')) document.getElementById('skipBtn').style.display = 'none';
+        if(hintBox) hintBox.style.display = 'none';
+        if(streamerSetup) streamerSetup.style.display = 'block';
         document.body.classList.add('streamer-mode-active');
-        categoryToggleBtn.style.display = 'none'; // Hide Sidebar Toggle in Streamer Setup
-        musicCategoryList.style.display = 'flex';
-        movieCategoryList.style.display = 'none';
-        sidebarTitle.textContent = 'Music Categories';
+    } else {
+        document.body.classList.remove('streamer-mode-active');
+        if(document.getElementById('mainScorePanel')) document.getElementById('mainScorePanel').style.display = 'flex';
     }
 }
 
@@ -443,11 +600,11 @@ function resetGameForModeSwitch() {
 verifyStreamerBtn.addEventListener('click', async () => {
     const kickUsername = kickUsernameInput.value.trim().toLowerCase();
     if (!kickUsername) {
-        kickStatusMsg.textContent = 'Please enter a valid username!';
+        kickStatusMsg.textContent = 'Lütfen geçerli bir kullanıcı adı girin!';
         return;
     }
 
-    kickStatusMsg.textContent = "Finding channel...";
+    kickStatusMsg.textContent = "Kullanıcı aranıyor...";
     verifyStreamerBtn.disabled = true;
     kickProfileCard.style.display = 'none';
     startStreamerBtn.style.display = 'none';
@@ -457,25 +614,29 @@ verifyStreamerBtn.addEventListener('click', async () => {
             headers: { 'Accept': 'application/json' }
         });
         
-        if (!res.ok) throw new Error('Channel not found or network error.');
+        if (!res.ok) {
+            throw new Error('Kanal bulunamadı veya ağ hatası.');
+        }
 
         const data = await res.json();
         const chatroomId = data.chatroom?.id;
 
-        if (!chatroomId) throw new Error('Could not retrieve chatroom ID (user may have never streamed).');
+        if (!chatroomId) {
+            throw new Error('Kullanıcının sohbet odası ID\'si alınamadı (hiç yayın yapmamış olabilir).');
+        }
 
         currentChatroomId = chatroomId;
         kickProfileImg.src = data.user?.profile_pic || 'https://kick.com/favicon.ico';
         kickProfileName.textContent = data.user?.username || kickUsername;
-        kickProfileFollowers.textContent = `${data.followersCount || 0} Followers`;
+        kickProfileFollowers.textContent = `${data.followersCount || 0} Takipçi`;
 
         kickProfileCard.style.display = 'flex';
         startStreamerBtn.style.display = 'block';
-        kickStatusMsg.textContent = 'Channel verified. Ready to start!';
+        kickStatusMsg.textContent = 'Kanal doğrulandı. Başlamaya hazır!';
 
     } catch (err) {
         console.error(err);
-        kickStatusMsg.textContent = `Error: ${err.message}`;
+        kickStatusMsg.textContent = `Hata: ${err.message}`;
     } finally {
         verifyStreamerBtn.disabled = false;
     }
@@ -486,7 +647,7 @@ startStreamerBtn.addEventListener('click', async () => {
 
     const duration = parseInt(roundDurationInput.value);
     if (!duration || duration < 15 || duration > 120) {
-        kickStatusMsg.textContent = 'Round duration must be between 15 and 120 seconds.';
+        kickStatusMsg.textContent = 'Tur süresi 15 ile 120 saniye arasında olmalıdır.';
         return;
     }
     
@@ -497,24 +658,24 @@ startStreamerBtn.addEventListener('click', async () => {
     
     roundMaxTime = duration;
 
-    kickStatusMsg.textContent = "Connecting to chat...";
+    kickStatusMsg.textContent = "Sohbete bağlanılıyor...";
     startStreamerBtn.disabled = true;
     verifyStreamerBtn.disabled = true;
-    categoryToggleBtn.style.display = 'none'; // Ensure hidden in EN version too
 
     try {
+        // Init Pusher
         if(pusherInstance) pusherInstance.disconnect();
         pusherInstance = new Pusher('32cbd69e4b950bf97679', { cluster: 'us2', forceTLS: true });
         pusherChannelInfo = pusherInstance.subscribe(`chatrooms.${currentChatroomId}.v2`);
         
         pusherChannelInfo.bind('pusher:subscription_succeeded', () => {
-            kickStatusMsg.textContent = 'Connected! Game starting...';
+            kickStatusMsg.textContent = 'Bağlandı! Oyun hazırlanıyor...';
             setTimeout(() => {
                 isStreamerBattleActive = true;
                 streamerSetup.style.display = 'none';
                 visualizerContainer.style.display = 'flex';
-                hintBox.style.display = 'block';
-                volumeContainer.style.display = 'flex';
+                hintBox.style.display = 'block'; // Kutuyu oyunda aç
+                volumeContainer.style.display = 'flex'; // Sesi oyunda aç
                 document.getElementById('skipBtn').style.display = 'none';
                 document.body.classList.add('streamer-battle-active');
                 closeSidebar();
@@ -532,12 +693,11 @@ startStreamerBtn.addEventListener('click', async () => {
 
     } catch (err) {
         console.error(err);
-        kickStatusMsg.textContent = `Error: ${err.message}`;
+        kickStatusMsg.textContent = `Hata: ${err.message}`;
         startStreamerBtn.disabled = false;
         verifyStreamerBtn.disabled = false;
     }
 });
-
 
 function calculateLevenshteinDistance(a, b) {
     const matrix = [];
@@ -563,30 +723,38 @@ function normalizeStringForGuess(str) {
 }
 
 function handleStreamerChatGuess(username, message) {
-    if(roundWinnersData.length >= 10) return;
+    if(roundWinnersData.length >= 10) return; // limit 10
+    
+    // User guess limit check
     if(userGuesses[username] >= 2) return;
     
     const target = normalizeStringForGuess(currentAnswer.trackName);
     const guess = normalizeStringForGuess(message);
     
-    if(guess.length < 3) return;
+    if(guess.length < 3) return; // skip too short
     
+    // Allow small typos depending on length
     const distance = calculateLevenshteinDistance(target, guess);
     const threshold = target.length > 10 ? 2 : (target.length > 5 ? 1 : 0);
     
+    // If strict include or levenshtein passes
     if (guess.includes(target) || distance <= threshold) {
+        // Prevent duplicate winner
         if(roundWinnersData.find(w => w.username === username)) return;
         
-        const points = Math.max(1, Math.ceil((currentRoundTime / roundMaxTime) * 10));
+        const points = Math.max(1, Math.ceil((currentRoundTime / roundMaxTime) * 10)); // 10 to 1 scaling
         roundWinnersData.push({ username, points });
         
+        // Update their global score
         if(!globalScores[username]) globalScores[username] = 0;
         globalScores[username] += points;
         
-        userGuesses[username] = 2; // Locked out
+        userGuesses[username] = 2; // Locked out for this round
         updateGlobalScoreboardUI();
         
-        if (roundWinnersData.length >= 10) endStreamerRound(true);
+        if (roundWinnersData.length >= 10) {
+            endStreamerRound(true);
+        }
     } else {
         if(!userGuesses[username]) userGuesses[username] = 0;
         userGuesses[username]++;
@@ -597,7 +765,7 @@ function updateGlobalScoreboardUI() {
     const sorted = Object.keys(globalScores).sort((a,b) => globalScores[b] - globalScores[a]);
     globalScoreList.innerHTML = '';
     if(sorted.length === 0) {
-        globalScoreList.innerHTML = '<li class="empty-list">No scores yet.</li>';
+        globalScoreList.innerHTML = '<li class="empty-list">Henüz puan alan kimse yok.</li>';
         return;
     }
     sorted.slice(0, 50).forEach((user, index) => {
@@ -614,24 +782,26 @@ function endStreamerRound(earlyEnd = false) {
     audioPlayer.pause();
     pulseRing.classList.remove('active');
     btnCover.classList.add('show');
-    btnCover.querySelector('img').style.filter = 'blur(0px)';
+    btnCover.style.filter = 'blur(0px)'; // show exact image
     
     statusMsg.textContent = `${currentAnswer.artistName} - ${currentAnswer.trackName}`;
     progressBar.style.width = '100%';
 
+    // Show round winners
     roundWinnersList.innerHTML = '';
     if(roundWinnersData.length === 0) {
         roundWinnersList.innerHTML = '<li style="justify-content: center; color: var(--text-muted)">Nobody guessed it!</li>';
     } else {
         roundWinnersData.forEach(w => {
             const li = document.createElement('li');
-            li.innerHTML = `<span class="user">${w.username}</span><span class="points">+${w.points} Pts</span>`;
+            li.innerHTML = `<span class="user">${w.username}</span><span class="points">+${w.points} Puan</span>`;
             roundWinnersList.appendChild(li);
         });
     }
     
     roundWinners.style.display = 'block';
 
+    // Wait and load next round
     autoNextTimeout = setTimeout(() => {
         roundWinners.style.display = 'none';
         loadNextRound();
@@ -641,8 +811,9 @@ function endStreamerRound(earlyEnd = false) {
 
 async function loadNextRound() {
     if (currentMode === 'streamer' && !isStreamerBattleActive) {
-        return; // Do not fetch songs during setup
+        return; // Setup aşamasındaysa şarkı çekme
     }
+
     playBtn.disabled = true;
     skipBtn.disabled = true;
     hintBtn.disabled = true;
@@ -652,17 +823,17 @@ async function loadNextRound() {
     progressBar.style.width = '0%';
     trackStats.style.display = 'none';
     btnCover.style.filter = ''; 
-    movieFrame.className = 'movie-backdrop';
+    movieFrame.className = 'movie-backdrop'; // Hep net olması istendi
     usedHint = false;
     movieLives = 4;
     resetMovieUI();
     
     if (currentMode === 'song' || currentMode === 'streamer') {
-        statusMsg.textContent = 'Searching for a hit...';
+        statusMsg.textContent = 'Yeni bir hit aranıyor...';
         trackStats.style.display = 'none';
         await loadNextAudioTask();
     } else if (currentMode === 'movie') {
-        statusMsg.textContent = 'Fetch movie frame...';
+        statusMsg.textContent = 'Fetching movie frame...';
         await loadNextMovieTask();
     }
 }
@@ -672,7 +843,7 @@ function resetMovieUI() {
     [hintYear, hintCast, hintOverview].forEach(card => {
         card.classList.remove('unlocked');
         card.classList.add('locked');
-        card.querySelector('.value').textContent = '?';
+        card.querySelector('.val').textContent = '?';
     });
 }
 
@@ -683,16 +854,16 @@ function unlockMovieHint(level) {
         hintYear.classList.replace('locked', 'unlocked');
         const genres = movieHintDetails.genres.map(g => g.name).slice(0, 2).join(', ');
         const year = movieHintDetails.release_date.substring(0, 4);
-        hintYear.querySelector('.value').textContent = `${year} | ${genres}`;
+        hintYear.querySelector('.val').textContent = `${year} | ${genres}`;
     } else if (level === 2) {
         hintCast.classList.replace('locked', 'unlocked');
         const cast = movieHintDetails.credits.cast.slice(0, 3).map(c => c.name).join(', ');
-        hintCast.querySelector('.value').textContent = cast;
+        hintCast.querySelector('.val').textContent = cast;
     } else if (level === 3) {
         hintOverview.classList.replace('locked', 'unlocked');
         let text = movieHintDetails.overview;
         if (text.length > 60) text = text.substring(0, 57) + '...';
-        hintOverview.querySelector('.value').textContent = text || 'No overview found';
+        hintOverview.querySelector('.val').textContent = text || 'Overview bulunamadı';
     }
 }
 
@@ -704,9 +875,9 @@ async function loadNextAudioTask() {
     searchInput.value = '';
     autocompleteDropdown.classList.remove('show');
     progressBar.style.width = '0%';
-    statusMsg.textContent = 'Searching for a new hit...';
+    statusMsg.textContent = 'Yeni bir hit aranıyor...';
     trackStats.style.display = 'none';
-    btnCover.style.filter = ''; // Reset CSS filter
+    btnCover.style.filter = ''; // CSS filtresini sıfırla
     usedHint = false;
     
     try {
@@ -739,7 +910,7 @@ async function loadNextAudioTask() {
         const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&limit=50&entity=song&media=music&attribute=artistTerm`);
         const data = await response.json();
         
-        const excludeKeywords = ['live', 'remix', 'mix', 'karaoke', 'instrumental', 'acoustic', 'edit'];
+        const excludeKeywords = ['live', 'remix', 'mix', 'karaoke', 'instrumental', 'version', 'acoustic', 'edit'];
         
         // Filter songs: Has URL, Not Played Before, Strictly Matches Artist, Excludes Remixes
         const validSongs = data.results.filter(song => {
@@ -773,14 +944,15 @@ async function loadNextAudioTask() {
             if (strictYearSongs.length > 0) {
                 poolToUse = strictYearSongs;
             } else {
+                // Şarkı kalmadıysa (Remaster kurbanı ise) API bloklamamak için bekleyip sıradaki sanatçıyı çek
                 audioRetryTimeout = setTimeout(loadNextAudioTask, 500);
                 return;
             }
         }
         
         if (poolToUse.length === 0) {
-            audioRetryTimeout = setTimeout(loadNextAudioTask, 500);
-            return;
+            // Şarkı kalmadıysa sıradaki sanatçıdan yeniden dene
+            return setTimeout(loadNextSong, 500);
         }
         
         // Repertuarı devasa popüler hit aralığına genişlet (Top 30 hit şarkı)
@@ -809,14 +981,14 @@ async function loadNextAudioTask() {
         searchInput.disabled = false;
         statusMsg.textContent = 'Ready! Press Play to listen';
         
-        // Track Stats
+        // Sarki İstatistikleri
         const year = currentAnswer.releaseDate ? currentAnswer.releaseDate.substring(0, 4) : '????';
         const randomViews = Math.floor(Math.random() * 800) + 100;
-        trackStats.textContent = `📅 Release Year: ${year}  |  ▶️ ~${randomViews}M+ Streams`;
+        trackStats.textContent = `📅 Release Year: ${year}  |  ▶️ ~${randomViews}M+ Plays`;
         trackStats.style.display = 'block';
-
+        
         if (currentMode === 'streamer') {
-            btnCover.querySelector('img').style.filter = 'blur(20px)';
+            btnCover.style.filter = 'blur(12px)'; // Baslangicta bulanik
             userGuesses = {};
             roundWinnersData = [];
             currentRoundTime = roundMaxTime;
@@ -826,27 +998,34 @@ async function loadNextAudioTask() {
                 isPlaying = true;
                 pulseRing.classList.add('active');
                 
-                btnCover.querySelector('img').style.transition = `filter ${roundMaxTime}s linear`;
+                // Animasyonu baslat
+                btnCover.style.transition = `filter ${roundMaxTime}s linear`;
                 setTimeout(() => {
-                    if(isStreamerRoundActive) btnCover.querySelector('img').style.filter = 'blur(0px)';
+                    if(isStreamerRoundActive) {
+                        btnCover.style.filter = 'blur(0px)';
+                    }
                 }, 100);
 
+                // Timer Guncelleme
                 streamerRoundTimer = setInterval(() => {
                     currentRoundTime--;
                     progressBar.style.width = `${((roundMaxTime - currentRoundTime) / roundMaxTime) * 100}%`;
-                    statusMsg.textContent = `Time left to guess: ${currentRoundTime}s`;
-                    if (currentRoundTime <= 0) endStreamerRound(false);
+                    statusMsg.textContent = `Sıradaki Tahmin İçin Kalan Süre: ${currentRoundTime}s`;
+                    
+                    if (currentRoundTime <= 0) {
+                        endStreamerRound(false);
+                    }
                 }, 1000);
             }).catch(e => {
-                console.error("Auto-play blocked", e);
-                statusMsg.textContent = "Auto-play blocked, please click the page once!";
+                console.error("Auto-play engellendi, kullanici etkilesimi lazim", e);
+                statusMsg.textContent = "Otomatik oynatma engellendi, sayfaya bir kez tıklayın!";
             });
         }
         
     } catch (err) {
         console.error(err);
         if (currentMode === 'song' || (currentMode === 'streamer' && isStreamerRoundActive)) {
-            statusMsg.textContent = 'Connection error, retrying...';
+            statusMsg.textContent = 'Bağlantı hatası, tekrar deneniyor...';
             audioRetryTimeout = setTimeout(loadNextAudioTask, 2000);
         }
     }
@@ -858,16 +1037,17 @@ async function loadNextMovieTask() {
         let movies = [];
         
         if (currentMovieGenre === 'top') {
-            // Top Rated: IMDb 8.5+ (vote_average >= 8.5, vote_count >= 500)
+            // En iyiler: IMDb 8.5+ (vote_average >= 8.5, vote_count >= 500)
             const page = Math.floor(Math.random() * 5) + 1;
-            const res = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${activeKey}&language=en-US&sort_by=vote_average.desc&vote_count.gte=500&vote_average.gte=8.5&with_original_language=en&page=${page}`);
+            const res = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${activeKey}&language=tr-TR&sort_by=vote_average.desc&vote_count.gte=500&vote_average.gte=8.5&with_original_language=en&page=${page}`);
             const data = await res.json();
             movies = (data.results || []).filter(m => !playedTrackIds.has(m.id));
         } else if (currentMovieGenre === 'all') {
+            // Random - top_rated veya popular karistir
             const useTopRated = Math.random() > 0.3;
             const endpoint = useTopRated ? 'top_rated' : 'popular';
             const page = Math.floor(Math.random() * 8) + 1;
-            const res = await fetch(`https://api.themoviedb.org/3/movie/${endpoint}?api_key=${activeKey}&language=en-US&page=${page}`);
+            const res = await fetch(`https://api.themoviedb.org/3/movie/${endpoint}?api_key=${activeKey}&language=tr-TR&page=${page}`);
             const data = await res.json();
             movies = (data.results || []).filter(m =>
                 !playedTrackIds.has(m.id) &&
@@ -877,21 +1057,24 @@ async function loadNextMovieTask() {
             );
             if (movies.length === 0) movies = (data.results || []).filter(m => !playedTrackIds.has(m.id) && m.original_language === 'en');
         } else {
+            // Belirli genre: discover/movie ile with_genres
             const page = Math.floor(Math.random() * 8) + 1;
+            // Animasyon kategorisinde dil kisitlamasi yok (Disney/Pixar vs.)
             const langFilter = currentMovieGenre === '16' ? '' : '&with_original_language=en';
-            const res = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${activeKey}&language=en-US&sort_by=popularity.desc&vote_count.gte=500&vote_average.gte=6.5&with_genres=${currentMovieGenre}${langFilter}&page=${page}`);
+            const res = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${activeKey}&language=tr-TR&sort_by=popularity.desc&vote_count.gte=500&vote_average.gte=6.5&with_genres=${currentMovieGenre}${langFilter}&page=${page}`);
             const data = await res.json();
             movies = (data.results || []).filter(m => !playedTrackIds.has(m.id));
         }
         
         if (movies.length === 0) {
+            // Tum sayfalari denedik, listeyi sifirla
             playedTrackIds.clear();
             return setTimeout(loadNextMovieTask, 300);
         }
         
         const selectedMovie = movies[Math.floor(Math.random() * movies.length)];
         
-        const detailRes = await fetch(`https://api.themoviedb.org/3/movie/${selectedMovie.id}?api_key=${activeKey}&language=en-US&append_to_response=credits`);
+        const detailRes = await fetch(`https://api.themoviedb.org/3/movie/${selectedMovie.id}?api_key=${activeKey}&language=tr-TR&append_to_response=credits`);
         const movieDetails = await detailRes.json();
         movieHintDetails = movieDetails;
 
@@ -906,16 +1089,17 @@ async function loadNextMovieTask() {
             return setTimeout(loadNextMovieTask, 300);
         }
         
-        // Sort by community rating - low vote_average = likely has text/watermarks
+        // Topluluk puanina gore sirada. Dusuk puan = genellikle yazi/watermark iceriyor.
         const sortedBackdrops = finalBackdrops.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
         
-        // Use canvas analysis to find a text-free frame (max 8 attempts)
+        // Canvas analizi ile yazi icermeyen bir kare bul (maks. 5 deneme)
         const backdropUrl = await findCleanBackdrop(sortedBackdrops, `https://image.tmdb.org/t/p/w300`);
         
         if (!backdropUrl) {
             return setTimeout(loadNextMovieTask, 300);
         }
         
+        // Bulunan temiz backdropun w1280 versiyonunu kullan
         const cleanPath = backdropUrl.replace('https://image.tmdb.org/t/p/w300', '');
         
         currentAnswer = {
@@ -932,21 +1116,21 @@ async function loadNextMovieTask() {
         
         skipBtn.disabled = false;
         searchInput.disabled = false;
-        statusMsg.textContent = 'Movie frame ready! Guess the movie.';
+        statusMsg.textContent = 'Film karesi hazır! Tahmin edin.';
         
     } catch(e) {
         console.error(e);
-        statusMsg.textContent = 'Error loading movie frame.';
+        statusMsg.textContent = 'Film yüklenirken hata oluştu.';
         setTimeout(loadNextMovieTask, 2000);
     }
 }
 
 /**
- * Prefers community-validated backdrops (vote_count > 0).
- * Uses canvas analysis to detect both text/watermarks AND promo/cover images.
+ * Sadece topluluk tarafindan oylanmis, yuksek puanli backdrop'lari tercih et.
+ * Canvas analizi ile hem yazi/watermark hem de tanitim/kapak goruntulerini ele.
  */
 async function findCleanBackdrop(sortedBackdrops, baseUrl) {
-    // Prefer community-voted frames (actual scene stills get voted on)
+    // Oncelikle vote_count > 0 olan (toplulukca dogrulanmis) kareleri sec
     const communityValidated = sortedBackdrops.filter(b => (b.vote_count || 0) > 0);
     const pool = communityValidated.length >= 3 ? communityValidated : sortedBackdrops;
     
@@ -960,21 +1144,21 @@ async function findCleanBackdrop(sortedBackdrops, baseUrl) {
         if (result === 'clean') {
             return url;
         }
-        console.log(`[BackdropFilter] Backdrop ${i} rejected (reason: ${result}): ${bd.file_path}`);
+        console.log(`[BackdropFilter] Backdrop ${i} elendi (sebep: ${result}): ${bd.file_path}`);
     }
     
-    // Fallback: use first community-validated or any backdrop
+    // Hepsi supheliyse ilk topluluk-onaylisini kullan, yoksa herhangi birini
     const fallback = pool[0] || sortedBackdrops[0];
     return fallback ? `${baseUrl}${fallback.file_path}` : null;
 }
 
 /**
- * Evaluates a backdrop image against three criteria:
- * 1. TEXT DETECTION: High contrast pixel density in top/bottom strips
- * 2. PROMO IMAGE: Low color variance across full frame (flat bg = cover/promo art)
- * 3. TOO DARK: Nearly black frames (credit backgrounds, fade-to-black)
+ * Bir backdrop gorselini uc kritere gore degerlendirir:
+ * 1. YAZI TESPITI: Ust/alt bantlarda yuksek kontrast piksel yogunlugu
+ * 2. PROMO GORUNTU: Tum karede dusuk renk varyans (duz arka plan = kapak/tanitim)
+ * 3. SINEMATIK KALITE: Dogal film sahnesinin kenar yogunlugu (orta seviye olmali)
  *
- * Returns: 'clean' | 'has_text' | 'too_uniform' | 'too_dark'
+ * Donusu: 'clean' | 'has_text' | 'is_promo' | 'too_uniform'
  */
 function analyzeBackdropImage(url) {
     return new Promise((resolve) => {
@@ -995,12 +1179,14 @@ function analyzeBackdropImage(url) {
                 ctx.drawImage(img, 0, 0, W, H);
                 
                 const fullData = ctx.getImageData(0, 0, W, H).data;
+                const totalPx = fullData.length / 4;
                 
-                // ── CRITERION 1: Text/watermark detection ──────────────────
+                // ── KRITER 1: Yazi/watermark tespiti ──────────────────
+                // Ust ve alt bantlarda yuksek kontrast piksel orani
                 const textRegions = [
-                    { x: 0, y: Math.floor(H * 0.84), w: W, h: Math.floor(H * 0.16) }, // Bottom subtitles
-                    { x: 0, y: 0,                    w: W, h: Math.floor(H * 0.13) }, // Top title
-                    { x: Math.floor(W*0.55), y: 0,   w: Math.floor(W*0.45), h: Math.floor(H*0.22) } // Top-right logo
+                    { x: 0, y: Math.floor(H * 0.84), w: W, h: Math.floor(H * 0.16) }, // Alt altyazi
+                    { x: 0, y: 0,                    w: W, h: Math.floor(H * 0.13) }, // Ust baslik
+                    { x: Math.floor(W*0.55), y: 0,   w: Math.floor(W*0.45), h: Math.floor(H*0.22) } // Sag ust logo
                 ];
                 let maxTextScore = 0;
                 for (const r of textRegions) {
@@ -1014,36 +1200,45 @@ function analyzeBackdropImage(url) {
                     }
                     maxTextScore = Math.max(maxTextScore, edgePixels / ((d.length/4) / 2));
                 }
-                if (maxTextScore > 0.14) return resolve('has_text');
+                if (maxTextScore > 0.14) {
+                    return resolve('has_text');
+                }
                 
-                // ── CRITERION 2: Low color variance = promo/cover art ──────
-                // Real movie scenes have rich color variety; promo images have flat gradients.
+                // ── KRITER 2: Dusuk renk varyans = tanitim / kapak fotografi ──
+                // Gercek film sahneleri dogal renk cesitliligi icerir.
+                // Tanitim gorselleri genellikle duz/gradyan arka planlidir.
                 let rSum = 0, gSum = 0, bSum = 0;
                 let rSumSq = 0, gSumSq = 0, bSumSq = 0;
-                const step = 16; // Sample every 4th pixel (fast)
+                const step = 4 * 4; // Her 4. piksel ornekleme (hizli)
                 let count = 0;
                 for (let p = 0; p < fullData.length; p += step) {
                     rSum += fullData[p]; gSum += fullData[p+1]; bSum += fullData[p+2];
                     rSumSq += fullData[p]**2; gSumSq += fullData[p+1]**2; bSumSq += fullData[p+2]**2;
                     count++;
                 }
-                const rVar = (rSumSq/count) - (rSum/count)**2;
-                const gVar = (gSumSq/count) - (gSum/count)**2;
-                const bVar = (bSumSq/count) - (bSum/count)**2;
+                const rVar = (rSumSq / count) - (rSum / count)**2;
+                const gVar = (gSumSq / count) - (gSum / count)**2;
+                const bVar = (bSumSq / count) - (bSum / count)**2;
                 const avgVariance = (rVar + gVar + bVar) / 3;
-                if (avgVariance < 200) return resolve('too_uniform');
                 
-                // ── CRITERION 3: Too dark (fade-to-black, credit backgrounds) ──
+                // Varyans 200'un altindaysa cok duz/tek duzen = buyuk ihtimalle tanitim
+                if (avgVariance < 200) {
+                    return resolve('too_uniform');
+                }
+                
+                // ── KRITER 3: Asiri karanlık gorsel (siyah perde / kredi arkaplan) ──
                 const rMean = rSum / count;
                 const gMean = gSum / count;
                 const bMean = bSum / count;
                 const avgLum = 0.299*rMean + 0.587*gMean + 0.114*bMean;
-                if (avgLum < 18) return resolve('too_dark');
+                if (avgLum < 18) { // Ortalama parlaklist cok dusuk = neredeyse siyah
+                    return resolve('too_dark');
+                }
                 
                 resolve('clean');
                 
             } catch(e) {
-                resolve('clean'); // CORS or other error — pass through
+                resolve('clean'); // CORS vb. hatada gecir
             }
         };
         
@@ -1054,11 +1249,21 @@ function analyzeBackdropImage(url) {
 
 function togglePlay() {
     if (audioPlayer.paused) {
-        audioPlayer.play();
-        playIcon.style.display = 'none';
-        pauseIcon.style.display = 'block';
-        pulseRing.classList.add('active');
-        isPlaying = true;
+        const playPromise = audioPlayer.play();
+        if (playPromise !== undefined) {
+            playPromise.then(_ => {
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+                pulseRing.classList.add('active');
+                isPlaying = true;
+            }).catch(error => {
+                console.error("Autoplay prevented or audio error:", error);
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+                pulseRing.classList.remove('active');
+                isPlaying = false;
+            });
+        }
     } else {
         audioPlayer.pause();
         playIcon.style.display = 'block';
@@ -1100,17 +1305,19 @@ function handleSearchInput(e) {
 async function searchSongs(query) {
     try {
         if (currentMode === 'song') {
+            // Kategori sanatçı kısıtlaması: rastgele değilse mevcut kategori sanatçılarını ekle
+            let searchTerm = query;
             let categoryArtists = [];
             if (currentCategoryValue !== 'rastgele' && CATEGORIES[currentCategoryValue]) {
                 categoryArtists = CATEGORIES[currentCategoryValue];
             }
             
-            const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=30&entity=song&media=music`);
+            const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(searchTerm)}&limit=30&entity=song&media=music`);
             const data = await response.json();
             
             let results = data.results;
             
-            // If a category is active, ONLY show results from that category's artists
+            // Kategori seçili ise sadece o kategorinin sanatçılarından gelen sonuçları göster
             if (categoryArtists.length > 0) {
                 const filteredResults = results.filter(item => {
                     const artistLower = item.artistName.toLowerCase();
@@ -1119,7 +1326,7 @@ async function searchSongs(query) {
                         return artistLower.includes(catLower) || catLower.includes(artistLower);
                     });
                 });
-                // No fallback - if artist not in category, don't show them
+                // Fallback yok: Kategori seçiliyse sadece o kategorinin sanatçıları gösterilir
                 results = filteredResults;
             }
             
@@ -1127,7 +1334,7 @@ async function searchSongs(query) {
             else renderDropdownEmpty();
         } else if (currentMode === 'movie') {
             const activeKey = getTmdbApiKey();
-            const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${activeKey}&language=en-US&query=${encodeURIComponent(query)}&page=1`);
+            const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${activeKey}&language=tr-TR&query=${encodeURIComponent(query)}&page=1`);
             const data = await response.json();
             if (data.results && data.results.length > 0) renderMovieDropdown(data.results);
             else renderDropdownEmpty();
@@ -1266,18 +1473,21 @@ function handleMovieGuess(guessedItem) {
     if (isCorrect) {
         searchInput.disabled = true;
         skipBtn.disabled = true;
+        // Kademeli Puanlama
         const points = movieLives === 4 ? 10 : (movieLives === 3 ? 7 : (movieLives === 2 ? 4 : 1));
         score += points;
         updateScoreUI();
         showFeedback('correct');
     } else {
         movieLives--;
+        // Kalpleri güncelle
         const heartToLose = hearts[movieLives];
         if (heartToLose) heartToLose.classList.add('lost');
 
         if (movieLives > 0) {
-            statusMsg.textContent = `Wrong! ${movieLives} lives left. A hint has been unlocked.`;
+            statusMsg.textContent = `Yanlış! Kalan Hak: ${movieLives}. Bir ipucu açıldı.`;
             unlockMovieHint(4 - movieLives);
+            // Inputu temizle ve yeniden odakla
             searchInput.value = '';
             searchInput.focus();
         } else {
@@ -1312,16 +1522,16 @@ function showFeedback(type) {
     
     if (type === 'correct') {
         feedbackPanel.className = 'modal glass-panel correct-panel';
-        feedbackTitle.textContent = 'Awesome! That\'s Correct 🎉';
+        feedbackTitle.textContent = 'Harika! Doğru Bildiniz 🎉';
     } else if (type === 'partial') {
         feedbackPanel.className = 'modal glass-panel partial-panel';
-        feedbackTitle.textContent = 'Artist Correct! (+5 Points) 👏';
+        feedbackTitle.textContent = 'Sanatçı Doğru! (+5 Puan) 👏';
     } else if (type === 'skip') {
         feedbackPanel.className = 'modal glass-panel skip-panel';
-        feedbackTitle.textContent = 'Skipped ⏭';
+        feedbackTitle.textContent = 'Pas Geçildi ⏭';
     } else {
         feedbackPanel.className = 'modal glass-panel wrong-panel';
-        feedbackTitle.textContent = 'Wrong Answer 🥺';
+        feedbackTitle.textContent = 'Yanlış Bildiniz 🥺';
     }
     
     if (currentMode === 'song') {
@@ -1335,6 +1545,7 @@ function showFeedback(type) {
         feedbackArtist.textContent = currentAnswer.original_title;
     }
     
+    // Otomatik olarak 3 saniye sonra yeni şarkıya geç
     if(autoNextTimeout) clearTimeout(autoNextTimeout);
     autoNextTimeout = setTimeout(() => {
         feedbackModal.classList.remove('show');
