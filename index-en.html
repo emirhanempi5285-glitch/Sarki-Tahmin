@@ -1,285 +1,259 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guess the Song Game</title>
-    <meta name="description" content="How fast can you guess popular songs just by hearing the music?">
+    <title>Nebula Music - Tahmin Oyunu</title>
+    <meta name="description" content="Müziği hisset, şarkıyı bul! En modern müzik tahmin oyunu.">
+    <!-- Premium Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
+    <!-- Dependencies -->
     <script src="https://js.pusher.com/8.0/pusher.min.js"></script>
 </head>
-<body>
-    <!-- Global Header Actions -->
-    <div class="header-right-global">
-        <a href="index.html" class="lang-btn" title="Turkish Version">🇹🇷 TR</a>
+<body class="nebula-theme">
+    <!-- Animated Nebula Backdrop -->
+    <div class="nebula-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
     </div>
-
-    <!-- Warning Badge -->
-    <div class="beta-warning">
-        🚧 Not fully released yet, various bugs or errors may occur. Have a good game!
-    </div>
-
-    <!-- Category Sidebar moved inside app-container -->
-    <div class="app-container">
-        <!-- Category Sidebar -->
-        <div id="categorySidebar" class="category-sidebar">
-            <div class="sidebar-header">
-                <h3 id="sidebarTitle">Music Categories</h3>
-                <button id="closeSidebarBtn" class="close-btn">✖</button>
+    <!-- UI Layer -->
+    <div class="app-layout">
+        <!-- Persistent Top Navigation -->
+        <nav class="top-nav glass">
+            <div class="nav-left">
+                <div class="logo" id="nebulaLogo" style="cursor: pointer;">
+                    <span class="icon">🎵</span>
+                    <span class="text">NEBULA<span class="muted">MUSIC</span></span>
+                </div>
             </div>
-            
-            <!-- Music Categories -->
-            <div class="category-list" id="musicCategoryList">
-                <button class="cat-btn active" data-val="rastgele">🎲 Random</button>
-                <button class="cat-btn" data-val="global_pop">🌍 Global Pop</button>
-                <button class="cat-btn" data-val="yabanci_2000ler">💿 2000s Global Hits</button>
-                <button class="cat-btn" data-val="yabanci_90lar">🪩 90s Global Hits</button>
-                <button class="cat-btn" data-val="yabanci_80ler">🕺 80s Nostalgia</button>
-                <button class="cat-btn" data-val="global_rock">🎸 Global Rock</button>
-                <button class="cat-btn" data-val="punk_rock">🛹 Punk Rock</button>
-                <button class="cat-btn" data-val="global_metal">🤘 Global Metal</button>
-                <button class="cat-btn" data-val="nu_metal">⛓️ Nu Metal</button>
-                <button class="cat-btn" data-val="global_rap">🎤 Global Rap</button>
-                <button class="cat-btn" data-val="film">🎬 Movie OSTs</button>
-                <button class="cat-btn" data-val="oyun">🎮 Video Game OSTs</button>
-            </div>
-
-            <!-- Movie Categories (shown in movie mode) -->
-            <div class="category-list" id="movieCategoryList" style="display:none;">
-                <button class="cat-btn active" data-genre="all">🎲 All (Random)</button>
-                <button class="cat-btn" data-genre="top">🏆 Top Rated (IMDb 8.5+)</button>
-                <button class="cat-btn" data-genre="28">💥 Action</button>
-                <button class="cat-btn" data-genre="12">🗺️ Adventure</button>
-                <button class="cat-btn" data-genre="35">😂 Comedy</button>
-                <button class="cat-btn" data-genre="18">🎭 Drama</button>
-                <button class="cat-btn" data-genre="27">😱 Horror</button>
-                <button class="cat-btn" data-genre="878">🚀 Sci-Fi</button>
-                <button class="cat-btn" data-genre="53">🕵️ Thriller</button>
-                <button class="cat-btn" data-genre="80">🔫 Crime & Mystery</button>
-                <button class="cat-btn" data-genre="14">🧙 Fantasy</button>
-                <button class="cat-btn" data-genre="16">🎨 Animation</button>
-                <button class="cat-btn" data-genre="10749">💕 Romance</button>
-            </div>
-        </div>
-        <div id="sidebarOverlay" class="sidebar-overlay"></div>
-
-        <!-- Left Tab Button (Category) -->
-        <button id="categoryToggleBtn" class="side-tab-btn left-tab" title="Categories">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
-        </button>
-
-        <!-- Right Tab Button -->
-        <button id="modeToggleTab" class="side-tab-btn right-tab" title="Game Modes">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-        </button>
-
-        <!-- Right Mode Sidebar -->
-        <div id="modeSidebar" class="category-sidebar mode-sidebar">
-            <div class="sidebar-header">
-                <h3>Game Modes</h3>
-                <button id="closeModeSidebarBtn" class="close-btn">✖</button>
-            </div>
-            <div class="category-list">
-                <button class="cat-btn active" data-mode="song">🎧 Guess the Song</button>
-                <button class="cat-btn" data-mode="movie">🎬 Movie Frames</button>
-                <button class="cat-btn" data-mode="streamer">🔴 Streamer Mode (Kick)</button>
-                <button class="cat-btn disabled" disabled title="Coming Soon!">💬 Movie Quotes (Soon)</button>
-            </div>
-        </div>
-
-        <!-- Central Layout Wrapper -->
-        <div class="main-layout">
-            <!-- Header: Score and Mode -->
-            <header class="game-header glass-panel">
-                <div class="header-status-bar" id="mainScorePanel">
-                    <div class="score-panel">
-                        <span class="label">SCORE</span>
-                        <span class="value" id="scoreValue">0</span>
+            <div class="nav-center" id="mainScorePanel">
+                <div class="stat-pill score">
+                    <span class="label">SCORE</span>
+                    <span class="value" id="scoreValue">0</span>
+                </div>
+                <div class="stat-pill category top-dropdown-trigger" id="musicCategoryPanel">
+                    <div class="pill-content" id="musicCategoryPillContent">
+                        <span class="label">MUSIC GENRE</span>
+                        <span class="value" id="musicCategoryName">-</span>
+                        <svg class="dropdown-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
                     </div>
-                    <div class="active-category-panel" id="activeCategoryPanel">
-                        <span class="label">CATEGORY</span>
-                        <span class="value" id="currentCategoryName">-</span>
+                    <div class="top-nav-dropdown glass" id="musicCategoryDropdown">
+                        <div class="category-grid" id="musicCategoryList">
+                            <button class="cat-btn active" data-val="rastgele">🎲 Random</button>
+                            <button class="cat-btn" data-val="global_pop">🌍 Global Pop</button>
+                            <button class="cat-btn" data-val="yabanci_2000ler">💿 2000s</button>
+                            <button class="cat-btn" data-val="yabanci_90lar">🪩 90s</button>
+                            <button class="cat-btn" data-val="yabanci_80ler">🕺 80s</button>
+                            <button class="cat-btn" data-val="global_rock">🎸 Global Rock</button>
+                            <button class="cat-btn" data-val="punk_rock">🛹 Punk Rock</button>
+                            <button class="cat-btn" data-val="global_metal">🤘 Global Metal</button>
+                            <button class="cat-btn" data-val="nu_metal">⛓️ Nu Metal</button>
+                            <button class="cat-btn" data-val="global_rap">🎤 Global Rap</button>
+                            <button class="cat-btn" data-val="film">🎬 Soundtrack</button>
+                            <button class="cat-btn" data-val="oyun">🎮 Game OST</button>
+                        </div>
                     </div>
                 </div>
-            </header>
-
-            <!-- Main Gameplay Area -->
-            <main class="game-main glass-panel">
-            <div class="hint-box">
-                <img id="btnCover" class="btn-cover" src="" alt="Album Hint">
+                <div class="stat-pill category top-dropdown-trigger" id="movieCategoryPanel" style="display:none;">
+                    <div class="pill-content" id="movieCategoryPillContent">
+                        <span class="label">MOVIE GENRE</span>
+                        <span class="value" id="movieCategoryName">-</span>
+                        <svg class="dropdown-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+                    </div>
+                    <div class="top-nav-dropdown glass" id="movieCategoryDropdown">
+                        <div class="category-grid" id="movieCategoryList">
+                            <button class="cat-btn active" data-genre="all">🎲 All</button>
+                            <button class="cat-btn" data-genre="top">🏆 Popular</button>
+                            <button class="cat-btn" data-genre="28">💥 Action</button>
+                            <button class="cat-btn" data-genre="12">🗺️ Adventure</button>
+                            <button class="cat-btn" data-genre="35">😂 Comedy</button>
+                            <button class="cat-btn" data-genre="18">🎭 Drama</button>
+                            <button class="cat-btn" data-genre="27">😱 Horror</button>
+                            <button class="cat-btn" data-genre="878">🚀 Sci-Fi</button>
+                            <button class="cat-btn" data-genre="14">🧙 Fantasy</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="visualizer-container" id="visualizerContainer">
-                <div class="pulse-ring" id="pulseRing"></div>
-                <button class="play-btn" id="playBtn" disabled>
-                    <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 5v14l11-7z"/>
-                    </svg>
-                    <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
-                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                    </svg>
+            <div class="nav-right">
+                <a href="index.html" class="lang-pill" title="Turkish Version">🇬🇧 EN</a>
+                <button id="categoryToggleBtn" class="menu-trigger" aria-label="Menü">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
             </div>
-
-            <!-- Movie Frame Container (Hidden by default) -->
-            <div class="frame-container" id="frameContainer" style="display: none;">
-                <img id="movieFrame" class="movie-backdrop" src="" alt="Movie Scene">
+        </nav>
+        <!-- Sidebar Navigation Drawer (Unified) -->
+        <aside id="categorySidebar" class="nav-drawer glass">
+            <div class="drawer-header">
+                <h3 id="sidebarTitle">CONTROL PANEL</h3>
+                <button id="closeSidebarBtn" class="close-drawer">✕</button>
             </div>
-
-            <!-- Movie Hints (Hidden by default) -->
-            <div class="hints-grid" id="hintsGrid">
-                <div class="hint-card locked" id="hintYear">
-                    <span class="label">Year / Genre</span>
-                    <span class="value">?</span>
-                </div>
-                <div class="hint-card locked" id="hintCast">
-                    <span class="label">Cast</span>
-                    <span class="value">?</span>
-                </div>
-                <div class="hint-card locked" id="hintOverview">
-                    <span class="label">Overview</span>
-                    <span class="value">?</span>
-                </div>
+            <div class="drawer-content scrollable">
+                <!-- Modes Section -->
+                <section class="drawer-section">
+                    <h4 class="section-title">GAME MODE</h4>
+                    <div id="modeSidebar" class="mode-grid">
+                        <button class="mode-btn cat-btn active" data-mode="song">
+                            <span class="emoji">🎧</span> Guess the Song
+                        </button>
+                        <button class="mode-btn cat-btn" data-mode="movie">
+                            <span class="emoji">🎬</span> Movie Frames
+                        </button>
+                        <button class="mode-btn cat-btn" data-mode="streamer">
+                            <span class="emoji">🔴</span> Streamer Mode
+                        </button>
+                    </div>
+                </section>
             </div>
-            
-            <div class="controls-row">
-                <div class="volume-container" id="volumeContainer">
-                    <svg viewBox="0 0 24 24" class="vol-icon" fill="currentColor">
-                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
-                    </svg>
-                    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
+        </aside>
+        <!-- Hidden elements for script compatibility -->
+        <div id="modeToggleTab" style="display:none;"></div>
+        <div id="closeModeSidebarBtn" style="display:none;"></div>
+        <!-- Main Display Island -->
+        <main class="game-viewport">
+            <!-- Central Stage -->
+            <div class="stage glass">
+                <!-- Visual Content Area -->
+                <div class="visual-stage">
+                    <div class="hint-box-container">
+                        <div class="hint-box" id="hintBox">
+                            <img id="btnCover" class="btn-cover" src="" alt="Album Art">
+                        </div>
+                    </div>
+                    <div class="visualizer-wrapper" id="visualizerContainer">
+                        <div class="pulse-ring" id="pulseRing"></div>
+                        <button class="play-btn-nebula" id="playBtn" disabled>
+                            <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </button>
+                    </div>
+                    <!-- Movie Backdrop -->
+                    <div class="movie-stage" id="frameContainer" style="display: none;">
+                        <img id="movieFrame" class="movie-backdrop" src="" alt="Movie Scene">
+                    </div>
                 </div>
-
-                <div class="lives-container" id="livesContainer">
-                    <svg viewBox="0 0 24 24" class="heart" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                    <svg viewBox="0 0 24 24" class="heart" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                    <svg viewBox="0 0 24 24" class="heart" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                    <svg viewBox="0 0 24 24" class="heart" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <!-- Info Display -->
+                <div class="info-block">
+                    <p class="status-msg" id="statusMsg">Waiting for signal...</p>
+                    <div class="metadata" id="trackStats" style="display: none;"></div>
                 </div>
-                
-                <button class="hint-btn" id="hintBtn" disabled title="Get Hint">
-                    💡 Hint
-                </button>
-                <button class="skip-btn" id="skipBtn" disabled>
-                    Skip <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                        <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Streamer Setup Screen -->
-            <div class="streamer-setup" id="streamerSetup" style="display: none;">
-                <div class="setup-header">
-                    <h2>🔴 Streamer Mode (Kick)</h2>
-                    <p>Allow your viewers to compete by guessing songs via chat.</p>
-                </div>
-
-                <div class="setup-form">
-                    <!-- 1. Channel Information Box -->
-                    <div class="setup-card">
-                        <h3>1. Channel Information</h3>
-                        <div class="setup-group">
-                            <label>Kick Channel Name</label>
-                            <div class="input-with-button">
-                                <input type="text" id="kickUsernameInput" placeholder="Enter channel name..." />
-                                <button id="verifyStreamerBtn" class="verify-btn">Verify</button>
+                <!-- Game Specific Overlays -->
+                <div class="game-overlays">
+                    <!-- Streamer Setup -->
+                    <div class="action-card streamer-card" id="streamerSetup" style="display: none;">
+                        <h3>🔴 STREAMER CONFIGURATION</h3>
+                        <div class="wizard-grid">
+                            <div class="setup-field">
+                                <label>Channel Name</label>
+                                <div class="nebula-input-group">
+                                    <input type="text" id="kickUsernameInput" placeholder="Your Kick username">
+                                    <button id="verifyStreamerBtn" class="accent-btn">Verify</button>
+                                </div>
+                            </div>
+                            <!-- Small profile card inside setup -->
+                            <div id="kickProfileCard" class="mini-profile glass" style="display: none;">
+                                <img id="kickProfileImg" src="" alt="Profile">
+                                <div class="profile-meta">
+                                    <strong id="kickProfileName">---</strong>
+                                    <span id="kickProfileFollowers">--- Puan</span>
+                                </div>
+                            </div>
+                            <div class="setup-field">
+                                <label>Kategori</label>
+                                <select id="streamerCategorySelect" class="nebula-select">
+                                    <option value="rastgele">🎲 Random</option>
+                                    <option value="global_pop">🌍 Global Pop</option>
+                                    <option value="film">🎬 Soundtracks</option>
+                                </select>
+                            </div>
+                            <div class="setup-field">
+                                <label>Round Duration</label>
+                                <input type="number" id="roundDurationInput" value="45" min="15" max="120">
                             </div>
                         </div>
-
-                        <!-- Profile Card -->
-                        <div id="kickProfileCard" class="kick-profile-card" style="display: none;">
-                            <img id="kickProfileImg" src="" alt="Profile">
-                            <div class="kick-profile-info">
-                                <strong id="kickProfileName">---</strong>
-                                <span id="kickProfileFollowers">--- Followers</span>
-                            </div>
-                        </div>
+                        <button id="startStreamerBtn" class="start-glow-btn" style="display: none;">START STREAM</button>
+                        <p id="kickStatusMsg" class="small-status"></p>
                     </div>
-
-                    <!-- 2. Game Settings Box -->
-                    <div class="setup-card">
-                        <h3>2. Game Settings</h3>
-                        <div class="setup-group">
-                            <label>Music Category</label>
-                            <select id="streamerCategorySelect" class="streamer-select">
-                                <option value="rastgele">🎲 Mixed (All Tracks)</option>
-                                <option value="global_pop">🌍 Global Pop</option>
-                                <option value="yabanci_2000ler">💿 2000'er Global Hits</option>
-                                <option value="yabanci_90lar">🪩 90's Global Hits</option>
-                                <option value="yabanci_80ler">🕺 80's Classics</option>
-                                <option value="global_rock">🎸 Global Rock</option>
-                                <option value="global_metal">💀 Global Metal</option>
-                                <option value="nu_metal">⛓️ Nu Metal</option>
-                                <option value="global_rap">🎤 American Rap</option>
-                                <option value="film">🎬 Movie OSTs</option>
-                                <option value="oyun">🎮 Video Game OSTs</option>
-                            </select>
-                        </div>
-                        <div class="setup-group">
-                            <label>Round Duration (Seconds)</label>
-                            <input type="number" id="roundDurationInput" value="45" min="15" max="120" />
-                        </div>
+                    <!-- Movie Hints -->
+                    <div class="movie-hints" id="hintsGrid" style="display: none;">
+                        <div class="hint-card locked" id="hintYear"><span class="lbl">Year/Genre</span><span class="val">?</span></div>
+                        <div class="hint-card locked" id="hintCast"><span class="lbl">Cast</span><span class="val">?</span></div>
+                        <div class="hint-card locked" id="hintOverview"><span class="lbl">Overview</span><span class="val">?</span></div>
                     </div>
-
-                    <button id="startStreamerBtn" class="primary-btn start-game-btn" style="display: none;">Start Game</button>
                 </div>
-                
-                <p class="status-msg" id="kickStatusMsg"></p>
             </div>
-
-            <div class="progress-bar-container" id="progressBarContainer">
-                <div class="progress-bar" id="progressBar"></div>
+            <!-- Interaction Bar -->
+            <div class="interaction-bar">
+                <div class="action-left">
+                    <div class="volume-nebula" id="volumeContainer">
+                        <svg viewBox="0 0 24 24" class="vol-icon"><path d="M3 9v6h4l5 5V4L7 9H3z"/></svg>
+                        <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
+                    </div>
+                </div>
+                <div class="action-center">
+                    <div class="search-nebula" id="searchSection">
+                        <div class="search-inner">
+                            <input type="text" id="searchInput" placeholder="Type your guess here..." autocomplete="off" disabled>
+                            <div class="autocomplete-dropdown-nebula" id="autocompleteDropdown"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-right">
+                    <div class="lives-nebula" id="livesContainer">
+                        <span class="heart-nebula">💜</span>
+                        <span class="heart-nebula">💜</span>
+                        <span class="heart-nebula">💜</span>
+                        <span class="heart-nebula">💜</span>
+                    </div>
+                    <button class="nebula-action-btn skip" id="skipBtn" disabled>SKIP</button>
+                    <button class="nebula-action-btn hint" id="hintBtn" disabled>HINT</button>
+                </div>
             </div>
-
-            <!-- Streamer Round Winners (Hidden by default) -->
-            <div class="round-winners" id="roundWinners" style="display: none;">
-                <h4>Fastest Guesses</h4>
+            <!-- Progress Indicator -->
+            <div class="nebula-progress" id="progressBarContainer">
+                <div class="fill" id="progressBar"></div>
+            </div>
+            <!-- Streamer Winners -->
+            <div class="winner-list-nebula" id="roundWinners" style="display: none;">
+                <h4>🏆 ROUND LEADERS</h4>
                 <ul id="roundWinnersList"></ul>
             </div>
-
-            <p class="status-msg" id="statusMsg">Loading track...</p>
-            <p class="track-stats" id="trackStats" style="display: none;"></p>
         </main>
-
-            <!-- Search / Autocomplete Area -->
-            <section class="search-section glass-panel" id="searchSection">
-                <div class="search-wrapper">
-                    <input type="text" id="searchInput" placeholder="Type song or artist..." autocomplete="off" disabled>
-                    <div class="autocomplete-dropdown" id="autocompleteDropdown">
-                        <!-- Search results will appear here -->
-                    </div>
-                </div>
-            </section>
-        </div> <!-- End of .main-layout -->
-
-        <!-- Global Scoreboard Sidebar (Hidden by default) -->
-        <aside class="global-scoreboard glass-panel" id="globalScoreboard" style="display: none;">
-            <h3>🏆 Global Scoreboard</h3>
-            <ul id="globalScoreList">
-                <li class="empty-list">No scores yet.</li>
-            </ul>
+        <!-- Global Scoreboard Sidebar -->
+        <aside id="globalScoreboard" class="sidebar-right glass" style="display: none;">
+            <h3>GLOBAL SCOREBOARD</h3>
+            <div class="scoreboard-content">
+                <ul id="globalScoreList">
+                    <li class="empty-list">Loading...</li>
+                </ul>
+            </div>
         </aside>
-
-        <div class="modal-overlay" id="feedbackModal">
-            <div class="modal glass-panel" id="feedbackPanel">
-                <h2 id="feedbackTitle">Correct!</h2>
-                <div class="song-info" id="feedbackSongInfo">
-                    <img id="feedbackCover" src="" alt="Album Cover">
-                    <div class="song-details">
-                        <strong id="feedbackTrack">Song Name</strong>
-                        <span id="feedbackArtist">Artist</span>
+        <!-- Feedback Overlay -->
+        <div class="nebula-overlay" id="feedbackModal">
+            <div class="nebula-modal glass" id="feedbackPanel">
+                <h2 id="feedbackTitle">CONGRATULATIONS!</h2>
+                <div class="reward-info" id="feedbackSongInfo">
+                    <img id="feedbackCover" src="" alt="Album">
+                    <div class="reward-text">
+                        <strong id="feedbackTrack">-</strong>
+                        <span id="feedbackArtist">-</span>
                     </div>
                 </div>
-                <p class="auto-next-msg">🎶 Next question starting in 3 seconds...</p>
+                <div class="countdown-bar"></div>
             </div>
         </div>
-    </div> <!-- End of .app-container -->
-
-    <!-- Audio Element -->
+    </div> <!-- End of .app-layout -->
+    <!-- Sidebar Overlay -->
+    <div id="sidebarOverlay" class="nebula-overlay-bg"></div>
+-    <div class="beta-warning-nebula">🚧 BETA v3.0.3 - NEBULA UI</div>
++    <div class="beta-warning-nebula">🚧 BETA v3.0.4 - NEBULA UI</div>
+    <!-- Audio Engine -->
     <audio id="audioPlayer" preload="auto"></audio>
-
-    <script src="app-en.js"></script>
+-    <script src="app-en.js?v=3.0.3"></script>
++    <script src="app-en.js?v=3.0.4"></script>
 </body>
 </html>
